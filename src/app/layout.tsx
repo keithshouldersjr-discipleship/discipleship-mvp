@@ -2,19 +2,19 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Formatio",
-  description: "Intelligent formation design for the local church.",
+  title: "Formatío",
+  description: "Intelligent Formatíon design for the local church.",
   openGraph: {
-    title: "Formatio",
-    description: "Intelligent formation design for the local church.",
-    url: "https://formatio.church",
-    siteName: "Formatio",
+    title: "Formatío",
+    description: "Intelligent Formatíon design for the local church.",
+    url: "https://Formatío.church",
+    siteName: "Formatío",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Formatio – Architecting Discipleship",
+        alt: "Formatío – Architecting Discipleship",
       },
     ],
     locale: "en_US",
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Formatio",
-    description: "Intelligent formation design for the local church.",
+    title: "Formatío",
+    description: "Intelligent Formatíon design for the local church.",
     images: ["/og-image.png"],
   },
 };
