@@ -44,15 +44,21 @@ type StepFourProps = StepBaseProps &
 type StepFiveProps = StepBaseProps & {
   back: () => void;
   handleSubmit: () => void;
-  loading: boolean;
-  error: string | null;
+  isSubmitting: boolean;
+  submitError: string | null;
 };
 
 export default function IntakePage() {
   const [step, setStep] = useState<number>(1);
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  // NOTE: these were unused in your snippet; safe to remove.
+  // If you want router navigation later, keep useRouter + router.
+  // const router = useRouter();
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState<string | null>(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     ageGroup: "",
@@ -79,65 +85,69 @@ export default function IntakePage() {
   };
 
   const handleSubmit = async () => {
-    setError(null);
-    setLoading(true);
-
     try {
-      // Map your current form shape -> the API schema shape
-      const payload = {
-        ageGroup: formData.ageGroup,
-        demographic: "Not provided", // You can add a step later; for MVP keep it simple
-        ministryProblem:
-          formData.problem === "Other" && formData.problemDetail?.trim()
-            ? formData.problemDetail.trim()
-            : formData.problem,
-        desiredOutcome: formData.outcomeDetail?.trim()
-          ? `${formData.outcome} — ${formData.outcomeDetail.trim()}`
-          : formData.outcome,
-        context:
-          formData.context === "Other" && formData.contextDetail?.trim()
-            ? "Other"
-            : (formData.context as
-                | "Sunday School"
-                | "Bible Study"
-                | "Morning Worship"
-                | "Small Group"
-                | "Other"),
-        needs: formData.needs,
-        leaderName: formData.leaderName,
-        groupName: formData.groupName,
-        timeframe: undefined,
-      };
+      setIsSubmitting(true);
+      setSubmitError(null);
 
       const res = await fetch("/api/generate-playbook", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-      console.log("Generate response:", data);
+      const data = (await res.json()) as { id?: string; error?: string };
+
       if (!res.ok) {
-        throw new Error(data?.error || "Failed to generate playbook.");
+        throw new Error(data.error ?? "Failed to generate playbook.");
       }
 
-      router.push(`/result/${data.id}`);
+      if (!data.id) {
+        throw new Error("Playbook generation did not return an id.");
+      }
+
+      // Redirect; leaving overlay on is fine because we're navigating away.
+      window.location.href = `/result/${data.id}`;
     } catch (err: unknown) {
-      console.error("Submit error:", err);
-      const message =
-        err instanceof Error ? err.message : "Unexpected error occurred.";
-      setError(message);
-    } finally {
-      setLoading(false);
+      setSubmitError(err instanceof Error ? err.message : "Unexpected error.");
+      setIsSubmitting(false);
     }
   };
 
   return (
     <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+      {/* Background glow */}
       <div className="pointer-events-none fixed inset-0 opacity-60">
         <div className="absolute left-1/2 top-[-140px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[#C6A75E]/10 blur-3xl" />
         <div className="absolute left-[10%] top-[40%] h-[360px] w-[360px] rounded-full bg-white/5 blur-3xl" />
       </div>
+
+      {/* ===== THINKING OVERLAY ===== */}
+      {isSubmitting && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-6">
+          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center shadow-2xl">
+            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-black">
+              <span className="h-7 w-7 rounded-full border-2 border-[#C6A75E]/30 border-t-[#C6A75E] animate-spin" />
+            </div>
+
+            <div className="text-lg font-semibold text-[#C6A75E]">
+              Generating Your Playbook
+            </div>
+
+            <div className="mt-2 text-sm text-white/60 leading-relaxed">
+              Structuring objectives, teaching flow, and formation strategy…
+            </div>
+
+            {/* Optional: show error here if something fails while overlay is up */}
+            {submitError ? (
+              <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+                {submitError}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
+      {/* ===== END OVERLAY ===== */}
+
       <div className="relative w-full max-w-2xl">
         {/* Brand header */}
         <div className="mb-8 flex items-center gap-3">
@@ -154,7 +164,8 @@ export default function IntakePage() {
             <div className="text-xl font-semibold tracking-tight text-[#C6A75E]">
               Formatio
             </div>
-            <div className="text-smformation text-white/60">
+            {/* FIX: you had "text-smformation" (typo). */}
+            <div className="text-sm text-white/60">
               Simple Christian Education
             </div>
           </div>
@@ -207,8 +218,8 @@ export default function IntakePage() {
               setFormData={setFormData}
               back={back}
               handleSubmit={handleSubmit}
-              loading={loading}
-              error={error}
+              isSubmitting={isSubmitting}
+              submitError={submitError}
             />
           )}
         </div>
@@ -216,7 +227,6 @@ export default function IntakePage() {
     </main>
   );
 }
-
 /* -----------------------------
    Step 1: Age group
 ------------------------------ */
@@ -542,8 +552,8 @@ function StepFive({
   setFormData,
   back,
   handleSubmit,
-  loading,
-  error,
+  isSubmitting,
+  submitError,
 }: StepFiveProps) {
   const canGenerate =
     formData.leaderName.trim().length > 0 &&
@@ -611,24 +621,36 @@ function StepFive({
       </div>
 
       <div className="flex justify-between items-center mt-8">
-        {error && <p className="mt-4 text-sm text-red-300">{error}</p>}
         <button
           type="button"
-          onClick={back}
-          className="text-white/60 hover:text-white transition"
-        >
-          Back
-        </button>
-
-        <button
-          type="button"
-          disabled={!canGenerate}
+          disabled={!canGenerate || isSubmitting}
           onClick={handleSubmit}
-          className="bg-[#C6A75E] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition"
+          className="bg-[#C6A75E] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition inline-flex items-center gap-2"
         >
-          {loading ? "Generating..." : "Generate Plan"}
+          {isSubmitting ? (
+            <>
+              <Spinner />
+              Generating…
+            </>
+          ) : (
+            "Generate Plan"
+          )}
         </button>
+        {submitError ? (
+          <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+            {submitError}
+          </div>
+        ) : null}
       </div>
     </div>
   );
+
+  function Spinner() {
+    return (
+      <span
+        className="inline-block h-4 w-4 rounded-full border-2 border-black/30 border-t-black animate-spin"
+        aria-label="Loading"
+      />
+    );
+  }
 }

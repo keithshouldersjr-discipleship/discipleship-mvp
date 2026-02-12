@@ -19,14 +19,21 @@ export const NeedsOptions = [
 
 export const IntakeSchema = z.object({
   ageGroup: z.string().min(1),
-  demographic: z.string().min(1),
-  ministryProblem: z.string().min(10),
-  desiredOutcome: z.string().min(10),
-  context: z.enum(ContextOptions),
-  needs: z.array(z.enum(NeedsOptions)).min(1),
+  problem: z.string().min(1),
+  problemDetail: z.string().optional(),
+
+  outcome: z.string().min(1),
+  outcomeDetail: z.string().optional(),
+
+  context: z.string().min(1),
+  contextDetail: z.string().optional(),
+
+  needs: z.array(
+    z.enum(NeedsOptions)
+  ).min(1),
+
   leaderName: z.string().min(1),
   groupName: z.string().min(1),
-  timeframe: z.string().optional(), // e.g. "single session", "6 weeks"
 });
 
 export type Intake = z.infer<typeof IntakeSchema>;
