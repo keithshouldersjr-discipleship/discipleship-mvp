@@ -2,17 +2,11 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { IntakeSchema, PlaybookSchema } from "@/lib/schema";
 import { buildPlaybookPrompt } from "@/lib/prompt";
-import { savePlaybook } from "@/lib/store";
+import { insertPlaybook } from "@/lib/playbook-repo";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic"; // prevents static evaluation
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-/**
- * Safely removes markdown code fences if the model wraps JSON in ```json blocks
- */
 function safeJsonParse(text: string) {
   const cleaned = text
     .trim()
@@ -20,54 +14,42 @@ function safeJsonParse(text: string) {
     .replace(/^```\s*/i, "")
     .replace(/```$/i, "")
     .trim();
-
   return JSON.parse(cleaned);
 }
 
 export async function POST(req: Request) {
   try {
-    // Parse and validate incoming form data
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "Server misconfigured: OPENAI_API_KEY is missing." },
+        { status: 500 }
+      );
+    }
+
+    const client = new OpenAI({ apiKey });
+
     const body = await req.json();
     const intake = IntakeSchema.parse(body);
 
-    // Call OpenAI
     const response = await client.responses.create({
       model: "gpt-4o-mini",
       input: buildPlaybookPrompt(intake),
     });
 
     const text = response.output_text?.trim();
+    if (!text) throw new Error("No output returned from model.");
 
-    if (!text) {
-      throw new Error("No output returned from model.");
-    }
-
-    // Parse AI JSON safely
     const json = safeJsonParse(text);
-
-    // Validate the generated playbook structure
     const playbook = PlaybookSchema.parse(json);
 
-    // Save to in-memory store
-    const id = savePlaybook(playbook);
+    const id = await insertPlaybook(intake, playbook);
 
-    return NextResponse.json({
-      id,
-      playbook,
-    });
-
+    return NextResponse.json({ id, playbook });
   } catch (err: unknown) {
     console.error("Playbook generation error:", err);
 
-    let message = "Unexpected error occurred.";
-
-    if (err instanceof Error) {
-      message = err.message;
-    }
-
-    return NextResponse.json(
-      { error: message },
-      { status: 400 }
-    );
+    const message = err instanceof Error ? err.message : "Unexpected error occurred.";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

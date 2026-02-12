@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { ContextOptions } from "@/lib/schema";
 import { NeedsOptions } from "@/lib/schema";
+import Image from "next/image";
 
 type FormData = {
   ageGroup: string;
@@ -133,51 +134,84 @@ export default function IntakePage() {
 
   return (
     <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
-      <div className="w-full max-w-2xl">
-        <p className="text-sm text-white/50 mb-6">Step {step} of 5</p>
+      <div className="pointer-events-none fixed inset-0 opacity-60">
+        <div className="absolute left-1/2 top-[-140px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[#C6A75E]/10 blur-3xl" />
+        <div className="absolute left-[10%] top-[40%] h-[360px] w-[360px] rounded-full bg-white/5 blur-3xl" />
+      </div>
+      <div className="relative w-full max-w-2xl">
+        {/* Brand header */}
+        <div className="mb-8 flex items-center gap-3">
+          <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-black">
+            <Image
+              src="/formatio-logo.png"
+              alt="Formatio"
+              fill
+              className="object-contain p-1"
+              priority
+            />
+          </div>
+          <div className="leading-tight">
+            <div className="text-xl font-semibold tracking-tight text-[#C6A75E]">
+              Formatio
+            </div>
+            <div className="text-sm text-white/60">
+              Intelligent congregational formation
+            </div>
+          </div>
+        </div>
 
-        {step === 1 && (
-          <StepOne formData={formData} setFormData={setFormData} next={next} />
-        )}
+        {/* Step indicator */}
+        <p className="text-sm text-white/50 mb-4">Step {step} of 5</p>
 
-        {step === 2 && (
-          <StepTwo
-            formData={formData}
-            setFormData={setFormData}
-            next={next}
-            back={back}
-          />
-        )}
+        {/* Premium card wrapper */}
+        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+          {step === 1 && (
+            <StepOne
+              formData={formData}
+              setFormData={setFormData}
+              next={next}
+            />
+          )}
 
-        {step === 3 && (
-          <StepThree
-            formData={formData}
-            setFormData={setFormData}
-            next={next}
-            back={back}
-          />
-        )}
+          {step === 2 && (
+            <StepTwo
+              formData={formData}
+              setFormData={setFormData}
+              next={next}
+              back={back}
+            />
+          )}
 
-        {step === 4 && (
-          <StepFour
-            formData={formData}
-            setFormData={setFormData}
-            next={next}
-            back={back}
-            toggleNeed={toggleNeed}
-          />
-        )}
+          {step === 3 && (
+            <StepThree
+              formData={formData}
+              setFormData={setFormData}
+              next={next}
+              back={back}
+            />
+          )}
 
-        {step === 5 && (
-          <StepFive
-            formData={formData}
-            setFormData={setFormData}
-            back={back}
-            handleSubmit={handleSubmit}
-            loading={loading}
-            error={error}
-          />
-        )}
+          {step === 4 && (
+            <StepFour
+              formData={formData}
+              setFormData={setFormData}
+              next={next}
+              back={back}
+              toggleNeed={toggleNeed}
+            />
+          )}
+
+          {step === 5 && (
+            <StepFive
+              formData={formData}
+              setFormData={setFormData}
+              back={back}
+              handleSubmit={handleSubmit}
+              loading={loading}
+              error={error}
+            />
+          )}
+        </div>
       </div>
     </main>
   );
