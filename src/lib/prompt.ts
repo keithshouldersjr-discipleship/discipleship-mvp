@@ -9,13 +9,17 @@ Create a "Playbook" that helps a ministry leader solve an educational formation 
 Write with pastoral warmth and educational rigor. Be concrete and actionable. No fluff.
 
 INPUTS
+INPUTS
 Audience (age group): ${intake.ageGroup}
-Demographic notes: ${intake.demographic}
-Ministry problem to solve: ${intake.ministryProblem}
-Desired outcome: ${intake.desiredOutcome}
-Setting/context: ${intake.context}
-Needs requested: ${needs}
-Timeframe: ${intake.timeframe ?? "Not specified"}
+Problem to solve: ${intake.problem}${intake.problem === "Other" && intake.problemDetail ? ` — ${intake.problemDetail}` : ""}
+
+Desired outcome: ${intake.outcome}${intake.outcomeDetail ? ` — ${intake.outcomeDetail}` : ""}
+
+Setting/context: ${intake.context}${intake.context === "Other" && intake.contextDetail ? ` — ${intake.contextDetail}` : ""}
+
+Needs selected: ${intake.needs.join(", ")}
+
+Prepared for: ${intake.leaderName} (${intake.groupName})
 Leader name: ${intake.leaderName}
 Group/class name: ${intake.groupName}
 
