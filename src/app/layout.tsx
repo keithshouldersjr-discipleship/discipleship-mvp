@@ -3,10 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Formatío",
-  description: "Intelligent Formatíon design for the local church.",
+  description: "Tools For Christian Education",
   openGraph: {
     title: "Formatío",
-    description: "Intelligent Formatíon design for the local church.",
+    description: "Tools For Christian Education",
     url: "https://Formatio.church",
     siteName: "Formatío",
     images: [
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Formatío – Architecting Discipleship",
+        alt: "Formatío – Tools For Christian Education",
       },
     ],
     locale: "en_US",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Formatío",
-    description: "Intelligent Formatíon design for the local church.",
+    description: "Tools For Christian Education",
     images: ["/og-image.png"],
   },
 };

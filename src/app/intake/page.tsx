@@ -154,8 +154,8 @@ export default function IntakePage() {
             <div className="text-xl font-semibold tracking-tight text-[#C6A75E]">
               Formatio
             </div>
-            <div className="text-sm text-white/60">
-              Intelligent congregational formation
+            <div className="text-smformation text-white/60">
+              Simple Christian Education
             </div>
           </div>
         </div>
