@@ -1,3 +1,4 @@
+// src/app/blueprints/[id]/page.tsx  (or src/app/result/[id]/page.tsx)
 import Image from "next/image";
 import type { Blueprint } from "@/lib/schema";
 import { fetchBlueprintById } from "@/lib/blueprint-repo";
@@ -88,18 +89,136 @@ function SessionCard({
 }
 
 /* -----------------------------
-   Track module renderers
+   Module type guards (avoid Vercel TS errors)
 ------------------------------ */
 
-function TeacherModuleView({ pb }: { pb: Blueprint }) {
-  const m = pb.modules.teacher;
-  if (!m) return null;
+type TeacherModule = {
+  prepChecklist: { beforeTheWeek: string[]; dayOf: string[] };
+  lessonPlan: {
+    planType: "Single Session" | "Multi-Session" | "Quarter/Semester";
+    sessions: {
+      title: string;
+      durationMinutes: number;
+      flow: { segment: string; minutes: number; purpose: string }[];
+    }[];
+  };
+  facilitationPrompts: {
+    openingQuestions: string[];
+    discussionQuestions: string[];
+    applicationPrompts: string[];
+  };
+  followUpPlan: { sameWeekPractice: string[]; nextTouchpoint: string[] };
+};
+
+type PastorLeaderModule = {
+  planOverview: {
+    planType: "Single Session" | "Multi-Session" | "Quarter/Semester";
+    cadence: string;
+    alignmentNotes: string[];
+  };
+  sessions: {
+    title: string;
+    objective: string;
+    leaderPrep: string[];
+    takeHomePractice: string[];
+    sessionPlan: {
+      title: string;
+      durationMinutes: number;
+      flow: { segment: string; minutes: number; purpose: string }[];
+    };
+  }[];
+  leaderTrainingPlan: {
+    trainingSessions: {
+      title: string;
+      durationMinutes: number;
+      agenda: string[];
+    }[];
+    coachingNotes: string[];
+  };
+  measurementFramework: {
+    inputsToTrack: string[];
+    outcomesToMeasure: string[];
+    simpleRubric: string[];
+  };
+};
+
+type YouthLeaderModule = {
+  activityIntegratedPlan: {
+    sessions: {
+      title: string;
+      durationMinutes: number;
+      flow: { segment: string; minutes: number; purpose: string }[];
+    }[];
+  };
+  activityBank: {
+    name: string;
+    timeMinutes: number;
+    objectiveTie: string;
+    setup: string;
+    debriefQuestions: string[];
+  }[];
+  leaderNotes: {
+    transitions: string[];
+    engagementMoves: string[];
+    guardrails: string[];
+  };
+};
+
+function isTeacherModule(v: unknown): v is TeacherModule {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return (
+    typeof o.prepChecklist === "object" &&
+    o.prepChecklist !== null &&
+    typeof o.lessonPlan === "object" &&
+    o.lessonPlan !== null &&
+    typeof o.facilitationPrompts === "object" &&
+    o.facilitationPrompts !== null &&
+    typeof o.followUpPlan === "object" &&
+    o.followUpPlan !== null
+  );
+}
+
+function isPastorLeaderModule(v: unknown): v is PastorLeaderModule {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return (
+    typeof o.planOverview === "object" &&
+    o.planOverview !== null &&
+    Array.isArray(o.sessions) &&
+    typeof o.leaderTrainingPlan === "object" &&
+    o.leaderTrainingPlan !== null &&
+    typeof o.measurementFramework === "object" &&
+    o.measurementFramework !== null
+  );
+}
+
+function isYouthLeaderModule(v: unknown): v is YouthLeaderModule {
+  if (typeof v !== "object" || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return (
+    typeof o.activityIntegratedPlan === "object" &&
+    o.activityIntegratedPlan !== null &&
+    Array.isArray(o.activityBank) &&
+    typeof o.leaderNotes === "object" &&
+    o.leaderNotes !== null
+  );
+}
+
+/* -----------------------------
+   Module renderers
+------------------------------ */
+
+function TeacherModuleView({ bp }: { bp: Blueprint }) {
+  const raw = bp.modules.teacher as unknown;
+  if (!isTeacherModule(raw)) return null;
+  const m = raw;
 
   return (
     <section className="space-y-4">
       <SectionTitle
         title="Teacher Module"
-        subtitle="Practical prep + facilitation prompts for a strong class session."
+        subtitle="Prep, facilitation, and follow-up to help you teach with intention."
       />
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -161,15 +280,16 @@ function TeacherModuleView({ pb }: { pb: Blueprint }) {
   );
 }
 
-function PastorLeaderModuleView({ pb }: { pb: Blueprint }) {
-  const m = pb.modules.pastorLeader;
-  if (!m) return null;
+function PastorLeaderModuleView({ bp }: { bp: Blueprint }) {
+  const raw = bp.modules.pastorLeader as unknown;
+  if (!isPastorLeaderModule(raw)) return null;
+  const m = raw;
 
   return (
     <section className="space-y-4">
       <SectionTitle
         title="Pastor/Leader Module"
-        subtitle="A scalable framework for alignment, training, and measurement."
+        subtitle="Alignment, leader training, and simple measurement to scale disciple-making."
       />
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
@@ -191,6 +311,7 @@ function PastorLeaderModuleView({ pb }: { pb: Blueprint }) {
           title="Sessions"
           subtitle="Recommended sessions with leader prep and take-home practice."
         />
+
         <div className="space-y-4">
           {m.sessions.map((s, i) => (
             <div
@@ -227,6 +348,7 @@ function PastorLeaderModuleView({ pb }: { pb: Blueprint }) {
           <div className="text-sm font-semibold text-white">
             Leader training plan
           </div>
+
           <div className="space-y-3">
             {m.leaderTrainingPlan.trainingSessions.map((t, i) => (
               <div
@@ -252,6 +374,7 @@ function PastorLeaderModuleView({ pb }: { pb: Blueprint }) {
               </div>
             ))}
           </div>
+
           <ListCard
             title="Coaching notes"
             items={m.leaderTrainingPlan.coachingNotes}
@@ -280,9 +403,10 @@ function PastorLeaderModuleView({ pb }: { pb: Blueprint }) {
   );
 }
 
-function YouthLeaderModuleView({ pb }: { pb: Blueprint }) {
-  const m = pb.modules.youthLeader;
-  if (!m) return null;
+function YouthLeaderModuleView({ bp }: { bp: Blueprint }) {
+  const raw = bp.modules.youthLeader as unknown;
+  if (!isYouthLeaderModule(raw)) return null;
+  const m = raw;
 
   return (
     <section className="space-y-4">
@@ -361,7 +485,7 @@ function YouthLeaderModuleView({ pb }: { pb: Blueprint }) {
 }
 
 /* -----------------------------
-   Not found (use this instead of throwing)
+   Not found view
 ------------------------------ */
 
 function NotFoundView() {
@@ -412,23 +536,25 @@ function NotFoundView() {
    Page
 ------------------------------ */
 
-export default async function ResultPage({
+export default async function BlueprintResultPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
 
-  // ✅ DO NOT cast. fetchBlueprintById now returns validated Blueprint | null.
   const blueprint = await fetchBlueprintById(id);
   if (!blueprint) return <NotFoundView />;
 
-  // ✅ Extra guard (should never trigger if repo validation is correct)
-  if (!blueprint.header || !blueprint.header.track) return <NotFoundView />;
+  const role = blueprint.header?.role;
+  if (!role) return <NotFoundView />;
 
-  const track = blueprint.header.track;
   const constraints = blueprint.header.context.constraints?.length
     ? blueprint.header.context.constraints.join(" · ")
+    : null;
+
+  const topic = blueprint.header.context.topicOrText?.trim()
+    ? blueprint.header.context.topicOrText
     : null;
 
   return (
@@ -454,7 +580,9 @@ export default async function ResultPage({
                 />
               </div>
               <div className="leading-tight">
-                <div className="text-sm text-white/60">Formatio Blueprint</div>
+                <div className="text-sm text-white/60">
+                  Discipleship by Design
+                </div>
                 <div className="font-semibold tracking-tight text-white">
                   {blueprint.header.preparedFor.groupName}
                 </div>
@@ -469,8 +597,9 @@ export default async function ResultPage({
                 New blueprint
               </a>
 
+              {/* match your route: /api/blueprints/[id]/pdf */}
               <a
-                href={`/api/blueprint/${id}/pdf`}
+                href={`/api/blueprints/${id}/pdf`}
                 className="rounded-full bg-[#C6A75E] px-4 py-2 text-sm font-semibold text-black hover:opacity-90 transition"
               >
                 Download PDF
@@ -482,15 +611,15 @@ export default async function ResultPage({
         {/* Hero */}
         <header className="mb-10 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Pill>Track: {track}</Pill>
-            <Pill>Prepared for: {blueprint.header.preparedFor.leaderName}</Pill>
-            <Pill>Group: {blueprint.header.audience.groupType}</Pill>
-            <Pill>Age: {blueprint.header.audience.ageGroup}</Pill>
-            <Pill>Context: {blueprint.header.context.setting}</Pill>
+            <Pill>Role: {role}</Pill>
+            <Pill>Leader: {blueprint.header.preparedFor.leaderName}</Pill>
+            <Pill>Group: {blueprint.header.preparedFor.groupName}</Pill>
+            <Pill>Age: {blueprint.header.context.ageGroup}</Pill>
+            <Pill>Setting: {blueprint.header.context.setting}</Pill>
             <Pill>Horizon: {blueprint.header.context.timeHorizon}</Pill>
-            {blueprint.header.context.topicOrText ? (
-              <Pill>Topic: {blueprint.header.context.topicOrText}</Pill>
-            ) : null}
+            <Pill>Design: {blueprint.header.context.designType}</Pill>
+            <Pill>{blueprint.header.context.durationMinutes} min</Pill>
+            {topic ? <Pill>Topic/Text: {topic}</Pill> : null}
             {constraints ? <Pill>Constraints: {constraints}</Pill> : null}
           </div>
 
@@ -513,7 +642,7 @@ export default async function ResultPage({
         <section className="space-y-4">
           <SectionTitle
             title="Formation Outcome"
-            subtitle="This is the north star for the entire plan (Backwards Design)."
+            subtitle="This is the north star for the blueprint (Backwards Design)."
           />
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -529,30 +658,6 @@ export default async function ResultPage({
             <ListCard
               title="Measurable indicators"
               items={blueprint.overview.outcomes.measurableIndicators}
-            />
-          </div>
-        </section>
-
-        {/* Formation problem */}
-        <section className="mt-10 space-y-4">
-          <SectionTitle
-            title="Formation Problem (Inferred)"
-            subtitle="What is currently missing that the desired outcome aims to produce."
-          />
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
-            <div>
-              <div className="text-sm font-semibold text-white mb-2">
-                Statement
-              </div>
-              <p className="text-sm text-white/70 leading-relaxed">
-                {blueprint.overview.formationProblem.statement}
-              </p>
-            </div>
-
-            <ListCard
-              title="Likely causes"
-              items={blueprint.overview.formationProblem.likelyCauses}
             />
           </div>
         </section>
@@ -592,14 +697,14 @@ export default async function ResultPage({
           </div>
         </section>
 
-        {/* Track module */}
+        {/* Modules */}
         <div className="mt-10 space-y-10">
-          {track === "Teacher" ? <TeacherModuleView pb={blueprint} /> : null}
-          {track === "Pastor/Leader" ? (
-            <PastorLeaderModuleView pb={blueprint} />
+          {role === "Teacher" ? <TeacherModuleView bp={blueprint} /> : null}
+          {role === "Pastor/Leader" ? (
+            <PastorLeaderModuleView bp={blueprint} />
           ) : null}
-          {track === "Youth Leader" ? (
-            <YouthLeaderModuleView pb={blueprint} />
+          {role === "Youth Leader" ? (
+            <YouthLeaderModuleView bp={blueprint} />
           ) : null}
         </div>
 
@@ -607,7 +712,7 @@ export default async function ResultPage({
         <section className="mt-12 space-y-4">
           <SectionTitle
             title="Recommended Resources"
-            subtitle="A short stack to deepen your practice and sharpen your plan."
+            subtitle="A short stack to deepen your practice and sharpen your blueprint."
           />
 
           <div className="grid gap-4">
@@ -655,7 +760,7 @@ export default async function ResultPage({
         </section>
 
         <footer className="pt-10 pb-6 text-center text-xs text-white/40">
-          Generated by Formatio · Intelligent congregational formation
+          Generated by Discipleship by Design · Teach With Intention
         </footer>
       </div>
     </main>
