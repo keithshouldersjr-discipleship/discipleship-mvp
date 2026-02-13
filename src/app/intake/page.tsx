@@ -206,9 +206,11 @@ export default function IntakePage() {
           </div>
           <div className="leading-tight">
             <div className="text-xl font-semibold tracking-tight text-[#C6A75E]">
-              Discipleship Design
+              Discipleship.Design
             </div>
-            <div className="text-sm text-white/60">Discipleship By Design</div>
+            <div className="text-sm text-white/60">
+              Blueprints for Disciple-Making
+            </div>
           </div>
         </div>
 

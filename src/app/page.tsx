@@ -15,11 +15,11 @@ export default function Home() {
         />
 
         <h1 className="mt-6 text-3xl font-semibold tracking-tight">
-          Discipleship Design
+          Discipleship.Design
         </h1>
 
         <p className="mt-3 max-w-xl text-lg text-white/80">
-          Discipleship By Design
+          Blueprints for Disciple-Making
         </p>
 
         {/* CTA Button */}
