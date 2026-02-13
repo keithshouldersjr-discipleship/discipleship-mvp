@@ -1,21 +1,38 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase-server";
-import type { Intake, Playbook } from "@/lib/schema";
+import { PlaybookSchema, type Intake, type Playbook } from "@/lib/schema";
 
-export async function insertPlaybook(intake: Intake, playbook: Playbook) {
+/* -----------------------------
+   Insert
+------------------------------ */
+
+export async function insertPlaybook(
+  intake: Intake,
+  playbook: Playbook
+) {
   const supabase = supabaseServer();
 
   const { data, error } = await supabase
     .from("playbooks")
-    .insert({ intake, playbook })
+    .insert({
+      intake,
+      playbook, // already validated before calling this
+    })
     .select("id")
     .single();
 
   if (error) throw new Error(error.message);
+
   return data.id as string;
 }
 
-export async function fetchPlaybookById(id: string): Promise<Playbook | null> {
+/* -----------------------------
+   Fetch (schema-validated)
+------------------------------ */
+
+export async function fetchPlaybookById(
+  id: string
+): Promise<Playbook | null> {
   const supabase = supabaseServer();
 
   const { data, error } = await supabase
@@ -24,6 +41,20 @@ export async function fetchPlaybookById(id: string): Promise<Playbook | null> {
     .eq("id", id)
     .single();
 
-  if (error) return null;
-  return (data?.playbook as Playbook) ?? null;
+  if (error || !data?.playbook) {
+    return null;
+  }
+
+  // 🔒 Critical fix: validate stored JSON
+  const parsed = PlaybookSchema.safeParse(data.playbook);
+
+  if (!parsed.success) {
+    console.error(
+      "Stored playbook failed schema validation:",
+      parsed.error.flatten()
+    );
+    return null; // prevents server crash
+  }
+
+  return parsed.data;
 }

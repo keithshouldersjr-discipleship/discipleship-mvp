@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { notFound } from "next/navigation";
 import type { Playbook } from "@/lib/schema";
 import { fetchPlaybookById } from "@/lib/playbook-repo";
 
@@ -362,7 +361,7 @@ function YouthLeaderModuleView({ pb }: { pb: Playbook }) {
 }
 
 /* -----------------------------
-   Not found
+   Not found (use this instead of throwing)
 ------------------------------ */
 
 function NotFoundView() {
@@ -389,8 +388,8 @@ function NotFoundView() {
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
           <p className="text-white/70 leading-relaxed">
-            This playbook isn’t available anymore. If you refreshed the page or
-            redeployed, the store may have been cleared.
+            This playbook isn’t available anymore. It may have been generated
+            before a recent update, or the record may be invalid.
           </p>
 
           <a
@@ -401,7 +400,7 @@ function NotFoundView() {
           </a>
 
           <p className="mt-4 text-xs text-white/40">
-            Persistence (Supabase) will make playbooks permanent.
+            Tip: after schema updates, older playbooks may not render.
           </p>
         </div>
       </div>
@@ -420,8 +419,12 @@ export default async function ResultPage({
 }) {
   const { id } = await params;
 
-  const playbook = (await fetchPlaybookById(id)) as Playbook | null;
-  if (!playbook) return notFound();
+  // ✅ DO NOT cast. fetchPlaybookById now returns validated Playbook | null.
+  const playbook = await fetchPlaybookById(id);
+  if (!playbook) return <NotFoundView />;
+
+  // ✅ Extra guard (should never trigger if repo validation is correct)
+  if (!playbook.header || !playbook.header.track) return <NotFoundView />;
 
   const track = playbook.header.track;
   const constraints = playbook.header.context.constraints?.length
