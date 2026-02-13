@@ -1,6 +1,6 @@
 import Image from "next/image";
-import type { Playbook } from "@/lib/schema";
-import { fetchPlaybookById } from "@/lib/playbook-repo";
+import type { Blueprint } from "@/lib/schema";
+import { fetchBlueprintById } from "@/lib/blueprint-repo";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +91,7 @@ function SessionCard({
    Track module renderers
 ------------------------------ */
 
-function TeacherModuleView({ pb }: { pb: Playbook }) {
+function TeacherModuleView({ pb }: { pb: Blueprint }) {
   const m = pb.modules.teacher;
   if (!m) return null;
 
@@ -161,7 +161,7 @@ function TeacherModuleView({ pb }: { pb: Playbook }) {
   );
 }
 
-function PastorLeaderModuleView({ pb }: { pb: Playbook }) {
+function PastorLeaderModuleView({ pb }: { pb: Blueprint }) {
   const m = pb.modules.pastorLeader;
   if (!m) return null;
 
@@ -280,7 +280,7 @@ function PastorLeaderModuleView({ pb }: { pb: Playbook }) {
   );
 }
 
-function YouthLeaderModuleView({ pb }: { pb: Playbook }) {
+function YouthLeaderModuleView({ pb }: { pb: Blueprint }) {
   const m = pb.modules.youthLeader;
   if (!m) return null;
 
@@ -381,14 +381,14 @@ function NotFoundView() {
           <div className="leading-tight">
             <div className="text-sm text-white/60">Discipleship By Design</div>
             <div className="font-semibold tracking-tight text-[#C6A75E]">
-              Playbook not found
+              Blueprint not found
             </div>
           </div>
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
           <p className="text-white/70 leading-relaxed">
-            This playbook isn’t available anymore. It may have been generated
+            This blueprint isn’t available anymore. It may have been generated
             before a recent update, or the record may be invalid.
           </p>
 
@@ -396,11 +396,11 @@ function NotFoundView() {
             href="/intake"
             className="mt-4 inline-flex rounded-full bg-[#C6A75E] px-5 py-2 text-sm font-semibold text-black"
           >
-            Generate a new playbook
+            Generate a new blueprint
           </a>
 
           <p className="mt-4 text-xs text-white/40">
-            Tip: after schema updates, older playbooks may not render.
+            Tip: after schema updates, older blueprints may not render.
           </p>
         </div>
       </div>
@@ -419,16 +419,16 @@ export default async function ResultPage({
 }) {
   const { id } = await params;
 
-  // ✅ DO NOT cast. fetchPlaybookById now returns validated Playbook | null.
-  const playbook = await fetchPlaybookById(id);
-  if (!playbook) return <NotFoundView />;
+  // ✅ DO NOT cast. fetchBlueprintById now returns validated Blueprint | null.
+  const blueprint = await fetchBlueprintById(id);
+  if (!blueprint) return <NotFoundView />;
 
   // ✅ Extra guard (should never trigger if repo validation is correct)
-  if (!playbook.header || !playbook.header.track) return <NotFoundView />;
+  if (!blueprint.header || !blueprint.header.track) return <NotFoundView />;
 
-  const track = playbook.header.track;
-  const constraints = playbook.header.context.constraints?.length
-    ? playbook.header.context.constraints.join(" · ")
+  const track = blueprint.header.track;
+  const constraints = blueprint.header.context.constraints?.length
+    ? blueprint.header.context.constraints.join(" · ")
     : null;
 
   return (
@@ -454,9 +454,9 @@ export default async function ResultPage({
                 />
               </div>
               <div className="leading-tight">
-                <div className="text-sm text-white/60">Formatio Playbook</div>
+                <div className="text-sm text-white/60">Formatio Blueprint</div>
                 <div className="font-semibold tracking-tight text-white">
-                  {playbook.header.preparedFor.groupName}
+                  {blueprint.header.preparedFor.groupName}
                 </div>
               </div>
             </div>
@@ -466,11 +466,11 @@ export default async function ResultPage({
                 href="/intake"
                 className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white/80 hover:bg-white/[0.07] transition"
               >
-                New playbook
+                New blueprint
               </a>
 
               <a
-                href={`/api/playbook/${id}/pdf`}
+                href={`/api/blueprint/${id}/pdf`}
                 className="rounded-full bg-[#C6A75E] px-4 py-2 text-sm font-semibold text-black hover:opacity-90 transition"
               >
                 Download PDF
@@ -483,29 +483,29 @@ export default async function ResultPage({
         <header className="mb-10 space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <Pill>Track: {track}</Pill>
-            <Pill>Prepared for: {playbook.header.preparedFor.leaderName}</Pill>
-            <Pill>Group: {playbook.header.audience.groupType}</Pill>
-            <Pill>Age: {playbook.header.audience.ageGroup}</Pill>
-            <Pill>Context: {playbook.header.context.setting}</Pill>
-            <Pill>Horizon: {playbook.header.context.timeHorizon}</Pill>
-            {playbook.header.context.topicOrText ? (
-              <Pill>Topic: {playbook.header.context.topicOrText}</Pill>
+            <Pill>Prepared for: {blueprint.header.preparedFor.leaderName}</Pill>
+            <Pill>Group: {blueprint.header.audience.groupType}</Pill>
+            <Pill>Age: {blueprint.header.audience.ageGroup}</Pill>
+            <Pill>Context: {blueprint.header.context.setting}</Pill>
+            <Pill>Horizon: {blueprint.header.context.timeHorizon}</Pill>
+            {blueprint.header.context.topicOrText ? (
+              <Pill>Topic: {blueprint.header.context.topicOrText}</Pill>
             ) : null}
             {constraints ? <Pill>Constraints: {constraints}</Pill> : null}
           </div>
 
           <h1 className="text-3xl font-semibold tracking-tight text-[#C6A75E]">
-            {playbook.header.title}
+            {blueprint.header.title}
           </h1>
 
-          {playbook.header.subtitle ? (
+          {blueprint.header.subtitle ? (
             <p className="text-base text-white/70">
-              {playbook.header.subtitle}
+              {blueprint.header.subtitle}
             </p>
           ) : null}
 
           <p className="max-w-3xl text-white/70 leading-relaxed">
-            {playbook.overview.executiveSummary}
+            {blueprint.overview.executiveSummary}
           </p>
         </header>
 
@@ -522,13 +522,13 @@ export default async function ResultPage({
                 Formation goal
               </div>
               <p className="text-sm text-white/70 leading-relaxed">
-                {playbook.overview.outcomes.formationGoal}
+                {blueprint.overview.outcomes.formationGoal}
               </p>
             </div>
 
             <ListCard
               title="Measurable indicators"
-              items={playbook.overview.outcomes.measurableIndicators}
+              items={blueprint.overview.outcomes.measurableIndicators}
             />
           </div>
         </section>
@@ -546,13 +546,13 @@ export default async function ResultPage({
                 Statement
               </div>
               <p className="text-sm text-white/70 leading-relaxed">
-                {playbook.overview.formationProblem.statement}
+                {blueprint.overview.formationProblem.statement}
               </p>
             </div>
 
             <ListCard
               title="Likely causes"
-              items={playbook.overview.formationProblem.likelyCauses}
+              items={blueprint.overview.formationProblem.likelyCauses}
             />
           </div>
         </section>
@@ -565,7 +565,7 @@ export default async function ResultPage({
           />
 
           <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-            {playbook.overview.bloomsObjectives.map((o, i) => (
+            {blueprint.overview.bloomsObjectives.map((o, i) => (
               <div
                 key={i}
                 className="rounded-2xl border border-white/10 bg-black/30 p-4"
@@ -594,12 +594,12 @@ export default async function ResultPage({
 
         {/* Track module */}
         <div className="mt-10 space-y-10">
-          {track === "Teacher" ? <TeacherModuleView pb={playbook} /> : null}
+          {track === "Teacher" ? <TeacherModuleView pb={blueprint} /> : null}
           {track === "Pastor/Leader" ? (
-            <PastorLeaderModuleView pb={playbook} />
+            <PastorLeaderModuleView pb={blueprint} />
           ) : null}
           {track === "Youth Leader" ? (
-            <YouthLeaderModuleView pb={playbook} />
+            <YouthLeaderModuleView pb={blueprint} />
           ) : null}
         </div>
 
@@ -611,7 +611,7 @@ export default async function ResultPage({
           />
 
           <div className="grid gap-4">
-            {playbook.recommendedResources.map((r, i) => (
+            {blueprint.recommendedResources.map((r, i) => (
               <div
                 key={i}
                 className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"

@@ -86,7 +86,7 @@ function moduleRule(track: Intake["track"]) {
    Prompt builder
 ------------------------------ */
 
-export function buildPlaybookPrompt(intake: Intake) {
+export function buildBlueprintPrompt(intake: Intake) {
   const groupType = formatGroupType(intake);
   const context = formatContext(intake);
   const outcome = formatOutcome(intake);
@@ -97,13 +97,13 @@ export function buildPlaybookPrompt(intake: Intake) {
 
   return `
 You are an expert Christian educator and ministry formation strategist.
-Create a "Playbook" using Backwards Design (desired outcomes → evidence/assessment → learning plan),
+Create a "Blueprint" using Backwards Design (desired outcomes → evidence/assessment → learning plan),
 Bloom's Taxonomy, and proven teaching/learning practices suitable for Christian education settings.
 
 Write with pastoral warmth and educational rigor. Be concrete and actionable. No fluff.
 Assume the user is a busy volunteer or ministry leader who needs clarity fast. Assume that the user
 has not studied education and is unaware of theory.
-The user's main priority is to ensure that the content being taught leads to transformation. The playbook
+The user's main priority is to ensure that the content being taught leads to transformation. The blueprint
 should be something that the average volunteer with a high school education can implement in a christian
 education content to help shape and grow christian disciples.
 

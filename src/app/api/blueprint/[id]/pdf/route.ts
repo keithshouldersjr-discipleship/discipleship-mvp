@@ -1,6 +1,6 @@
-import { fetchPlaybookById } from "@/lib/playbook-repo";
+import { fetchBlueprintById } from "@/lib/blueprint-repo";
 import { pdf } from "@react-pdf/renderer";
-import { buildPlaybookPdfDocument } from "../../../../../lib/pdf/playbook-pdf";
+import { buildBlueprintPdfDocument } from "../../../../../lib/pdf/blueprint-pdf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,15 +15,15 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const playbook = await fetchPlaybookById(id);
-  if (!playbook) {
+  const blueprint = await fetchBlueprintById(id);
+  if (!blueprint) {
     return new Response(JSON.stringify({ error: "Not found" }), {
       status: 404,
       headers: { "Content-Type": "application/json" },
     });
   }
 
-  const doc = buildPlaybookPdfDocument(playbook);
+  const doc = buildBlueprintPdfDocument(blueprint);
 
   // ✅ Use toBlob() → arrayBuffer() (most reliable)
   const instance = pdf(doc) as unknown as PdfInstance;
@@ -39,8 +39,8 @@ export async function GET(
   }
 
   const filenameSafe =
-    playbook.header.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase() ||
-    "playbook";
+    blueprint.header.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase() ||
+    "blueprint";
 
   return new Response(arrayBuffer, {
     headers: {

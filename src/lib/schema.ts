@@ -231,7 +231,7 @@ const ModulesSchema = z
     }
   });
 
-export const PlaybookSchema = z
+export const BlueprintSchema = z
   .object({
     header: HeaderSchema,
     overview: OverviewSchema,
@@ -281,4 +281,4 @@ export const PlaybookSchema = z
     }
   });
 
-export type Playbook = z.infer<typeof PlaybookSchema>;
+export type Blueprint = z.infer<typeof BlueprintSchema>;

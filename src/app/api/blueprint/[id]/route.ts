@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPlaybook } from "@/lib/store";
+import { getBlueprint } from "@/lib/store";
 
 export const runtime = "nodejs";
 
@@ -9,11 +9,11 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const playbook = getPlaybook(id);
+  const blueprint = getBlueprint(id);
 
-  if (!playbook) {
+  if (!blueprint) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ playbook });
+  return NextResponse.json({ blueprint });
 }

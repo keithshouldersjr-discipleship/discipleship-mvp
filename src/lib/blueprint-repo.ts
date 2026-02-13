@@ -1,22 +1,22 @@
 import "server-only";
 import { supabaseServer } from "@/lib/supabase-server";
-import { PlaybookSchema, type Intake, type Playbook } from "@/lib/schema";
+import { BlueprintSchema, type Intake, type Blueprint } from "@/lib/schema";
 
 /* -----------------------------
    Insert
 ------------------------------ */
 
-export async function insertPlaybook(
+export async function insertBlueprint(
   intake: Intake,
-  playbook: Playbook
+  blueprint: Blueprint
 ) {
   const supabase = supabaseServer();
 
   const { data, error } = await supabase
-    .from("playbooks")
+    .from("blueprints")
     .insert({
       intake,
-      playbook, // already validated before calling this
+      blueprint, // already validated before calling this
     })
     .select("id")
     .single();
@@ -30,27 +30,27 @@ export async function insertPlaybook(
    Fetch (schema-validated)
 ------------------------------ */
 
-export async function fetchPlaybookById(
+export async function fetchBlueprintById(
   id: string
-): Promise<Playbook | null> {
+): Promise<Blueprint | null> {
   const supabase = supabaseServer();
 
   const { data, error } = await supabase
-    .from("playbooks")
-    .select("playbook")
+    .from("blueprints")
+    .select("blueprint")
     .eq("id", id)
     .single();
 
-  if (error || !data?.playbook) {
+  if (error || !data?.blueprint) {
     return null;
   }
 
   // 🔒 Critical fix: validate stored JSON
-  const parsed = PlaybookSchema.safeParse(data.playbook);
+  const parsed = BlueprintSchema.safeParse(data.blueprint);
 
   if (!parsed.success) {
     console.error(
-      "Stored playbook failed schema validation:",
+      "Stored blueprint failed schema validation:",
       parsed.error.flatten()
     );
     return null; // prevents server crash

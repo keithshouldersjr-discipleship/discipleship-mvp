@@ -8,7 +8,7 @@ import {
   type DocumentProps,
   Link,
 } from "@react-pdf/renderer";
-import type { Playbook } from "@/lib/schema";
+import type { Blueprint } from "@/lib/schema";
 
 const styles = StyleSheet.create({
   page: { padding: 36, fontSize: 11, fontFamily: "Helvetica", color: "#111" },
@@ -97,13 +97,13 @@ function BulletList({
   );
 }
 
-export function buildPlaybookPdfDocument(
-  playbook: Playbook,
+export function buildBlueprintPdfDocument(
+  blueprint: Blueprint,
 ): React.ReactElement<DocumentProps> {
-  const header = playbook.header;
-  const overview = playbook.overview;
+  const header = blueprint.header;
+  const overview = blueprint.overview;
 
-  const title = safeStr(header?.title, "Formatio Playbook");
+  const title = safeStr(header?.title, "Formatio Blueprint");
   const track = safeStr(header?.track, "—");
   const leaderName = safeStr(header?.preparedFor?.leaderName, "—");
   const groupName = safeStr(header?.preparedFor?.groupName, "—");
@@ -124,11 +124,11 @@ export function buildPlaybookPdfDocument(
     : [];
 
   // Teacher module (MVP-safe)
-  const teacher = playbook.modules?.teacher ?? null;
+  const teacher = blueprint.modules?.teacher ?? null;
 
   // Resources
-  const resources = Array.isArray(playbook.recommendedResources)
-    ? playbook.recommendedResources
+  const resources = Array.isArray(blueprint.recommendedResources)
+    ? blueprint.recommendedResources
     : [];
 
   return (

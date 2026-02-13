@@ -1,7 +1,7 @@
-import type { Playbook } from "./schema";
+import type { Blueprint } from "./schema";
 
-const playbooks = new Map<string, Playbook>();
+const blueprints = new Map<string, Blueprint>();
 
-export function getPlaybook(id: string): Playbook | undefined {
-  return playbooks.get(id);
+export function getBlueprint(id: string): Blueprint | undefined {
+  return blueprints.get(id);
 }

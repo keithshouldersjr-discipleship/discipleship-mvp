@@ -140,7 +140,7 @@ export default function IntakePage() {
       setIsSubmitting(true);
       setSubmitError(null);
 
-      const res = await fetch("/api/generate-playbook", {
+      const res = await fetch("/api/generate-blueprint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -149,9 +149,9 @@ export default function IntakePage() {
       const data = (await res.json()) as { id?: string; error?: string };
 
       if (!res.ok)
-        throw new Error(data.error ?? "Failed to generate playbook.");
+        throw new Error(data.error ?? "Failed to generate blueprint.");
       if (!data.id)
-        throw new Error("Playbook generation did not return an id.");
+        throw new Error("Blueprint generation did not return an id.");
 
       window.location.href = `/result/${data.id}`;
     } catch (err: unknown) {
@@ -177,7 +177,7 @@ export default function IntakePage() {
             </div>
 
             <div className="text-lg font-semibold text-[#C6A75E]">
-              Generating Your Playbook
+              Generating Your Blueprint
             </div>
             <div className="mt-2 text-sm text-white/60 leading-relaxed">
               Structuring outcomes, Bloom’s objectives, and your session plan…

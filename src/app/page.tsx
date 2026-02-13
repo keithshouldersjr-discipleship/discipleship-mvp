@@ -1,7 +1,39 @@
 import Image from "next/image";
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
-export default function Home() {
+export const runtime = "nodejs";
+
+export default async function Home() {
+  // ✅ Auth gate: if no session/user, send them to welcome
+  const cookieStore = await cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set({ name, value, ...options });
+          });
+        },
+      },
+    },
+  );
+
+  const { data } = await supabase.auth.getUser();
+
+  if (!data.user) {
+    redirect("/welcome");
+  }
+
+  // ✅ Authenticated users see your current homepage
   return (
     <main className="min-h-screen bg-black text-white">
       <div className="mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 text-center">
@@ -20,8 +52,6 @@ export default function Home() {
         <p className="mt-3 max-w-xl text-lg text-white/80">
           Blueprints for Disciple-Making
         </p>
-
-        {/* CTA Button */}
 
         <Link
           href="/intake"
