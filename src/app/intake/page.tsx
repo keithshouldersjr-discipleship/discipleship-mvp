@@ -1,21 +1,51 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
-import { ContextOptions } from "@/lib/schema";
-import { NeedsOptions } from "@/lib/schema";
 import Image from "next/image";
+import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
+
+import {
+  TrackOptions,
+  NeedsOptions,
+  AgeGroupOptions,
+  ContextOptions,
+  GroupTypeOptions,
+  TimeHorizonOptions,
+  ConstraintOptions,
+  type Track,
+  type Need,
+  type AgeGroup,
+  type Context,
+  type GroupType,
+  type TimeHorizonValue,
+  type Constraint,
+} from "@/lib/options";
+
+/* -----------------------------
+   Types
+------------------------------ */
 
 type FormData = {
-  ageGroup: string;
-  problem: string;
-  problemDetail?: string;
+  track: Track | "";
+  groupType: GroupType | "";
+  groupTypeDetail?: string;
+
+  ageGroup: AgeGroup | "";
+
   outcome: string;
   outcomeDetail?: string;
-  context: string;
+
+  timeHorizon: TimeHorizonValue | "";
+
+  topicOrText?: string;
+
+  constraints: Constraint[];
+
+  context: Context | "";
   contextDetail?: string;
-  needs: string[];
+
+  needs: Need[];
+
   leaderName: string;
   groupName: string;
 };
@@ -35,52 +65,73 @@ type StepNavProps = {
 type StepOneProps = StepBaseProps & Pick<StepNavProps, "next">;
 type StepTwoProps = StepBaseProps & StepNavProps;
 type StepThreeProps = StepBaseProps & StepNavProps;
-
-type StepFourProps = StepBaseProps &
+type StepFourProps = StepBaseProps & StepNavProps;
+type StepFiveProps = StepBaseProps & StepNavProps;
+type StepSixProps = StepBaseProps &
   StepNavProps & {
-    toggleNeed: (value: string) => void;
+    toggleNeed: (value: Need) => void;
   };
 
-type StepFiveProps = StepBaseProps & {
+type StepSevenProps = StepBaseProps & {
   back: () => void;
   handleSubmit: () => void;
   isSubmitting: boolean;
   submitError: string | null;
+  toggleConstraint: (value: Constraint) => void;
 };
+
+/* -----------------------------
+   Page
+------------------------------ */
 
 export default function IntakePage() {
   const [step, setStep] = useState<number>(1);
-
-  // NOTE: these were unused in your snippet; safe to remove.
-  // If you want router navigation later, keep useRouter + router.
-  // const router = useRouter();
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState<string | null>(null);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
+    track: "",
+    groupType: "",
+    groupTypeDetail: "",
+
     ageGroup: "",
-    problem: "",
+
     outcome: "",
     outcomeDetail: "",
+
+    timeHorizon: "",
+
+    topicOrText: "",
+
+    constraints: [],
+
     context: "",
     contextDetail: "",
+
     needs: [],
+
     leaderName: "",
     groupName: "",
   });
 
-  const next = () => setStep((prev) => Math.min(prev + 1, 5));
+  const next = () => setStep((prev) => Math.min(prev + 1, 7));
   const back = () => setStep((prev) => Math.max(prev - 1, 1));
 
-  const toggleNeed = (value: string) => {
+  const toggleNeed = (value: Need) => {
     setFormData((prev) => ({
       ...prev,
       needs: prev.needs.includes(value)
-        ? prev.needs.filter((n) => n !== value)
+        ? prev.needs.filter((n: Need) => n !== value)
         : [...prev.needs, value],
+    }));
+  };
+
+  const toggleConstraint = (value: Constraint) => {
+    setFormData((prev) => ({
+      ...prev,
+      constraints: prev.constraints.includes(value)
+        ? prev.constraints.filter((c: Constraint) => c !== value)
+        : [...prev.constraints, value],
     }));
   };
 
@@ -97,15 +148,11 @@ export default function IntakePage() {
 
       const data = (await res.json()) as { id?: string; error?: string };
 
-      if (!res.ok) {
+      if (!res.ok)
         throw new Error(data.error ?? "Failed to generate playbook.");
-      }
-
-      if (!data.id) {
+      if (!data.id)
         throw new Error("Playbook generation did not return an id.");
-      }
 
-      // Redirect; leaving overlay on is fine because we're navigating away.
       window.location.href = `/result/${data.id}`;
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : "Unexpected error.");
@@ -121,7 +168,7 @@ export default function IntakePage() {
         <div className="absolute left-[10%] top-[40%] h-[360px] w-[360px] rounded-full bg-white/5 blur-3xl" />
       </div>
 
-      {/* ===== THINKING OVERLAY ===== */}
+      {/* Thinking overlay */}
       {isSubmitting && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center px-6">
           <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-white/[0.03] p-8 text-center shadow-2xl">
@@ -132,12 +179,10 @@ export default function IntakePage() {
             <div className="text-lg font-semibold text-[#C6A75E]">
               Generating Your Playbook
             </div>
-
             <div className="mt-2 text-sm text-white/60 leading-relaxed">
-              Structuring objectives, teaching flow, and formation strategy…
+              Structuring outcomes, Bloom’s objectives, and your session plan…
             </div>
 
-            {/* Optional: show error here if something fails while overlay is up */}
             {submitError ? (
               <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
                 {submitError}
@@ -146,7 +191,6 @@ export default function IntakePage() {
           </div>
         </div>
       )}
-      {/* ===== END OVERLAY ===== */}
 
       <div className="relative w-full max-w-2xl">
         {/* Brand header */}
@@ -164,20 +208,17 @@ export default function IntakePage() {
             <div className="text-xl font-semibold tracking-tight text-[#C6A75E]">
               Formatio
             </div>
-            {/* FIX: you had "text-smformation" (typo). */}
             <div className="text-sm text-white/60">
-              Simple Christian Education
+              Intelligent congregational formation
             </div>
           </div>
         </div>
 
-        {/* Step indicator */}
-        <p className="text-sm text-white/50 mb-4">Step {step} of 5</p>
+        <p className="text-sm text-white/50 mb-4">Step {step} of 7</p>
 
-        {/* Premium card wrapper */}
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
           {step === 1 && (
-            <StepOne
+            <TrackStep
               formData={formData}
               setFormData={setFormData}
               next={next}
@@ -185,7 +226,7 @@ export default function IntakePage() {
           )}
 
           {step === 2 && (
-            <StepTwo
+            <GroupTypeStep
               formData={formData}
               setFormData={setFormData}
               next={next}
@@ -194,7 +235,7 @@ export default function IntakePage() {
           )}
 
           {step === 3 && (
-            <StepThree
+            <AgeGroupStep
               formData={formData}
               setFormData={setFormData}
               next={next}
@@ -203,7 +244,25 @@ export default function IntakePage() {
           )}
 
           {step === 4 && (
-            <StepFour
+            <OutcomeStep
+              formData={formData}
+              setFormData={setFormData}
+              next={next}
+              back={back}
+            />
+          )}
+
+          {step === 5 && (
+            <TimeTopicStep
+              formData={formData}
+              setFormData={setFormData}
+              next={next}
+              back={back}
+            />
+          )}
+
+          {step === 6 && (
+            <ContextNeedsStep
               formData={formData}
               setFormData={setFormData}
               next={next}
@@ -212,14 +271,15 @@ export default function IntakePage() {
             />
           )}
 
-          {step === 5 && (
-            <StepFive
+          {step === 7 && (
+            <FinalizeStep
               formData={formData}
               setFormData={setFormData}
               back={back}
               handleSubmit={handleSubmit}
               isSubmitting={isSubmitting}
               submitError={submitError}
+              toggleConstraint={toggleConstraint}
             />
           )}
         </div>
@@ -227,43 +287,49 @@ export default function IntakePage() {
     </main>
   );
 }
+
 /* -----------------------------
-   Step 1: Age group
+   Step 1: Track
 ------------------------------ */
 
-function StepOne({ formData, setFormData, next }: StepOneProps) {
-  const options = [
-    "Children",
-    "Teens",
-    "Young Adults",
-    "Adults",
-    "Multi-Generational",
-  ];
-
+function TrackStep({ formData, setFormData, next }: StepOneProps) {
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-6">Who are you serving?</h2>
+      <h2 className="text-2xl font-semibold mb-2">
+        Who is Formatio helping today?
+      </h2>
+      <p className="text-white/60 mb-6">
+        This shapes the plan structure and recommendations.
+      </p>
 
       <div className="grid gap-3">
-        {options.map((option) => (
+        {TrackOptions.map((option) => (
           <button
             key={option}
             type="button"
-            onClick={() => setFormData((p) => ({ ...p, ageGroup: option }))}
+            onClick={() => setFormData((p) => ({ ...p, track: option }))}
             className={`p-4 rounded-lg border text-left transition ${
-              formData.ageGroup === option
+              formData.track === option
                 ? "border-[#C6A75E] bg-[#C6A75E]/10"
                 : "border-white/20 hover:border-white/40"
             }`}
           >
-            {option}
+            <div className="font-semibold">{option}</div>
+            <div className="text-sm text-white/60 mt-1">
+              {option === "Teacher" &&
+                "Prepare and deliver a strong class session."}
+              {option === "Pastor/Leader" &&
+                "Build curriculum and training frameworks."}
+              {option === "Youth Leader" &&
+                "Integrate activities while keeping outcomes clear."}
+            </div>
           </button>
         ))}
       </div>
 
       <button
         type="button"
-        disabled={!formData.ageGroup}
+        disabled={!formData.track}
         onClick={next}
         className="mt-8 bg-[#C6A75E] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition"
       >
@@ -274,37 +340,32 @@ function StepOne({ formData, setFormData, next }: StepOneProps) {
 }
 
 /* -----------------------------
-   Step 2: Problem
+   Step 2: Group Type
 ------------------------------ */
 
-function StepTwo({ formData, setFormData, next, back }: StepTwoProps) {
-  const options = [
-    "Low engagement",
-    "Biblical literacy gaps",
-    "Inconsistent attendance",
-    "Weak application",
-    "Leadership development gaps",
-    "Intergenerational disconnect",
-    "Other",
-  ];
+function GroupTypeStep({ formData, setFormData, next, back }: StepTwoProps) {
+  const canNext =
+    formData.groupType !== "" &&
+    (formData.groupType !== "Other" ||
+      (formData.groupTypeDetail ?? "").trim().length > 0);
 
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-2">
-        What problem are you addressing?
+        What group are you leading?
       </h2>
       <p className="text-white/60 mb-6">
-        Choose the closest match. You can refine it later.
+        Choose the primary group setting you’re designing for.
       </p>
 
-      <div className="grid gap-3">
-        {options.map((option) => (
+      <div className="grid gap-3 sm:grid-cols-2">
+        {GroupTypeOptions.map((option) => (
           <button
             key={option}
             type="button"
-            onClick={() => setFormData((p) => ({ ...p, problem: option }))}
+            onClick={() => setFormData((p) => ({ ...p, groupType: option }))}
             className={`p-4 rounded-lg border text-left transition ${
-              formData.problem === option
+              formData.groupType === option
                 ? "border-[#C6A75E] bg-[#C6A75E]/10"
                 : "border-white/20 hover:border-white/40"
             }`}
@@ -314,17 +375,17 @@ function StepTwo({ formData, setFormData, next, back }: StepTwoProps) {
         ))}
       </div>
 
-      {formData.problem === "Other" && (
-        <div className="mt-6">
+      {formData.groupType === "Other" && (
+        <div className="mt-5">
           <label className="block text-sm text-white/70 mb-2">
-            Describe the problem (one sentence)
+            Describe the group type
           </label>
           <input
-            value={formData.problemDetail ?? ""}
+            value={formData.groupTypeDetail ?? ""}
             onChange={(e) =>
-              setFormData((p) => ({ ...p, problemDetail: e.target.value }))
+              setFormData((p) => ({ ...p, groupTypeDetail: e.target.value }))
             }
-            placeholder="Example: Teachers are prepared but members aren’t applying the Word."
+            placeholder="Example: New believer foundations class"
             className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#C6A75E]/60"
           />
         </div>
@@ -340,7 +401,7 @@ function StepTwo({ formData, setFormData, next, back }: StepTwoProps) {
         </button>
         <button
           type="button"
-          disabled={!formData.problem}
+          disabled={!canNext}
           onClick={next}
           className="bg-[#C6A75E] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition"
         >
@@ -352,10 +413,58 @@ function StepTwo({ formData, setFormData, next, back }: StepTwoProps) {
 }
 
 /* -----------------------------
-   Step 3: Outcome
+   Step 3: Age Group
 ------------------------------ */
 
-function StepThree({ formData, setFormData, next, back }: StepThreeProps) {
+function AgeGroupStep({ formData, setFormData, next, back }: StepThreeProps) {
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold mb-2">Who are you serving?</h2>
+      <p className="text-white/60 mb-6">Choose the primary age group.</p>
+
+      <div className="grid gap-3">
+        {AgeGroupOptions.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => setFormData((p) => ({ ...p, ageGroup: option }))}
+            className={`p-4 rounded-lg border text-left transition ${
+              formData.ageGroup === option
+                ? "border-[#C6A75E] bg-[#C6A75E]/10"
+                : "border-white/20 hover:border-white/40"
+            }`}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex justify-between mt-8">
+        <button
+          type="button"
+          onClick={back}
+          className="text-white/60 hover:text-white transition"
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          disabled={!formData.ageGroup}
+          onClick={next}
+          className="bg-[#C6A75E] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* -----------------------------
+   Step 4: Outcomes
+------------------------------ */
+
+function OutcomeStep({ formData, setFormData, next, back }: StepFourProps) {
   const options = [
     "Increase biblical understanding",
     "Improve application of Scripture",
@@ -364,7 +473,7 @@ function StepThree({ formData, setFormData, next, back }: StepThreeProps) {
     "Develop new leaders",
     "Build intergenerational connection",
     "Evangelistic confidence",
-  ];
+  ] as const;
 
   return (
     <div>
@@ -372,7 +481,7 @@ function StepThree({ formData, setFormData, next, back }: StepThreeProps) {
         What outcome do you want to see?
       </h2>
       <p className="text-white/60 mb-6">
-        Choose the primary outcome. Add a sentence if you want.
+        Backwards design starts here: define success first.
       </p>
 
       <div className="grid gap-3">
@@ -401,7 +510,7 @@ function StepThree({ formData, setFormData, next, back }: StepThreeProps) {
           onChange={(e) =>
             setFormData((p) => ({ ...p, outcomeDetail: e.target.value }))
           }
-          placeholder="Example: Members can explain the passage and apply one concrete practice this week."
+          placeholder="Example: Members can explain the passage and apply one practice this week."
           className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#C6A75E]/60"
           rows={3}
         />
@@ -429,18 +538,88 @@ function StepThree({ formData, setFormData, next, back }: StepThreeProps) {
 }
 
 /* -----------------------------
-   Step 4: Context + Needs
+   Step 5: Time Horizon + Topic/Text
 ------------------------------ */
 
-function StepFour({
+function TimeTopicStep({ formData, setFormData, next, back }: StepFiveProps) {
+  const canNext = formData.timeHorizon !== "";
+
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold mb-2">How big is the plan?</h2>
+      <p className="text-white/60 mb-6">
+        Choose a time horizon. Add an optional passage/topic for sharper output.
+      </p>
+
+      <div className="mb-6">
+        <h3 className="text-sm text-white/70 mb-3">Time horizon</h3>
+        <div className="grid gap-3">
+          {TimeHorizonOptions.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() =>
+                setFormData((p) => ({ ...p, timeHorizon: t.value }))
+              }
+              className={`p-4 rounded-lg border text-left transition ${
+                formData.timeHorizon === t.value
+                  ? "border-[#C6A75E] bg-[#C6A75E]/10"
+                  : "border-white/20 hover:border-white/40"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-2">
+        <label className="block text-sm text-white/70 mb-2">
+          Optional: Passage / topic / series focus
+        </label>
+        <input
+          value={formData.topicOrText ?? ""}
+          onChange={(e) =>
+            setFormData((p) => ({ ...p, topicOrText: e.target.value }))
+          }
+          placeholder='Example: Mark 2:13–17 (Dining with sinners) / "Prayer habits"'
+          className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[#C6A75E]/60"
+        />
+      </div>
+
+      <div className="flex justify-between mt-8">
+        <button
+          type="button"
+          onClick={back}
+          className="text-white/60 hover:text-white transition"
+        >
+          Back
+        </button>
+        <button
+          type="button"
+          disabled={!canNext}
+          onClick={next}
+          className="bg-[#C6A75E] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* -----------------------------
+   Step 6: Context + Needs
+------------------------------ */
+
+function ContextNeedsStep({
   formData,
   setFormData,
   next,
   back,
   toggleNeed,
-}: StepFourProps) {
-  const contexts = ContextOptions;
-  const needs = NeedsOptions;
+}: StepSixProps) {
+  const canNext = formData.context !== "" && formData.needs.length > 0;
 
   return (
     <div>
@@ -454,7 +633,7 @@ function StepFour({
       <div className="mb-8">
         <h3 className="text-sm text-white/70 mb-3">Context</h3>
         <div className="grid gap-3 sm:grid-cols-2">
-          {contexts.map((c) => (
+          {ContextOptions.map((c) => (
             <button
               key={c}
               type="button"
@@ -490,7 +669,7 @@ function StepFour({
       <div className="mb-8">
         <h3 className="text-sm text-white/70 mb-3">What do you need?</h3>
         <div className="grid gap-3 sm:grid-cols-2">
-          {needs.map((n) => {
+          {NeedsOptions.map((n) => {
             const selected = formData.needs.includes(n);
             return (
               <button
@@ -532,7 +711,7 @@ function StepFour({
         </button>
         <button
           type="button"
-          disabled={!formData.context || formData.needs.length === 0}
+          disabled={!canNext}
           onClick={next}
           className="bg-[#C6A75E] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition"
         >
@@ -544,26 +723,39 @@ function StepFour({
 }
 
 /* -----------------------------
-   Step 5: Name + Submit
+   Step 7: Names + Constraints + Submit
 ------------------------------ */
 
-function StepFive({
+function FinalizeStep({
   formData,
   setFormData,
   back,
   handleSubmit,
   isSubmitting,
   submitError,
-}: StepFiveProps) {
+  toggleConstraint,
+}: StepSevenProps) {
   const canGenerate =
     formData.leaderName.trim().length > 0 &&
-    formData.groupName.trim().length > 0;
+    formData.groupName.trim().length > 0 &&
+    formData.track !== "" &&
+    formData.groupType !== "" &&
+    formData.ageGroup !== "" &&
+    formData.outcome.trim().length > 0 &&
+    formData.timeHorizon !== "" &&
+    formData.context !== "" &&
+    formData.needs.length > 0;
+
+  const groupTypeDisplay =
+    formData.groupType === "Other" && formData.groupTypeDetail
+      ? `${formData.groupType} — ${formData.groupTypeDetail}`
+      : formData.groupType;
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold mb-2">Who is this for?</h2>
+      <h2 className="text-2xl font-semibold mb-2">Finalize</h2>
       <p className="text-white/60 mb-6">
-        Add a name and group title so the output feels personal.
+        Add a name + group title and optionally note constraints.
       </p>
 
       <div className="grid gap-4">
@@ -594,18 +786,64 @@ function StepFive({
         </div>
       </div>
 
+      {/* Constraints (optional) */}
+      <div className="mt-8">
+        <h3 className="text-sm text-white/70 mb-3">Constraints (optional)</h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {ConstraintOptions.map((c) => {
+            const selected = formData.constraints.includes(c);
+            return (
+              <button
+                key={c}
+                type="button"
+                onClick={() => toggleConstraint(c)}
+                className={`p-4 rounded-lg border text-left transition ${
+                  selected
+                    ? "border-[#C6A75E] bg-[#C6A75E]/10"
+                    : "border-white/20 hover:border-white/40"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{c}</span>
+                  <span
+                    className={`text-sm ${
+                      selected ? "text-[#C6A75E]" : "text-white/40"
+                    }`}
+                  >
+                    {selected ? "Selected" : "Select"}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Review */}
       <div className="mt-8 rounded-lg border border-white/15 bg-white/5 p-4">
         <p className="text-sm text-white/70 mb-3">Review</p>
         <ul className="text-sm text-white/80 space-y-1">
           <li>
-            <span className="text-white/50">Age Group:</span>{" "}
+            <span className="text-white/50">Track:</span> {formData.track}
+          </li>
+          <li>
+            <span className="text-white/50">Group type:</span>{" "}
+            {groupTypeDisplay}
+          </li>
+          <li>
+            <span className="text-white/50">Age group:</span>{" "}
             {formData.ageGroup}
           </li>
           <li>
-            <span className="text-white/50">Problem:</span> {formData.problem}
+            <span className="text-white/50">Outcome:</span> {formData.outcome}
           </li>
           <li>
-            <span className="text-white/50">Outcome:</span> {formData.outcome}
+            <span className="text-white/50">Time horizon:</span>{" "}
+            {formData.timeHorizon}
+          </li>
+          <li>
+            <span className="text-white/50">Topic/text:</span>{" "}
+            {formData.topicOrText?.trim() ? formData.topicOrText : "—"}
           </li>
           <li>
             <span className="text-white/50">Context:</span> {formData.context}
@@ -617,40 +855,40 @@ function StepFive({
             <span className="text-white/50">Needs:</span>{" "}
             {formData.needs.join(", ")}
           </li>
+          <li>
+            <span className="text-white/50">Constraints:</span>{" "}
+            {formData.constraints.length
+              ? formData.constraints.join(", ")
+              : "—"}
+          </li>
         </ul>
       </div>
+
+      {submitError ? (
+        <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+          {submitError}
+        </div>
+      ) : null}
 
       <div className="flex justify-between items-center mt-8">
         <button
           type="button"
+          onClick={back}
+          disabled={isSubmitting}
+          className="text-white/60 hover:text-white transition disabled:opacity-40"
+        >
+          Back
+        </button>
+
+        <button
+          type="button"
           disabled={!canGenerate || isSubmitting}
           onClick={handleSubmit}
-          className="bg-[#C6A75E] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition inline-flex items-center gap-2"
+          className="bg-[#C6A75E] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition"
         >
-          {isSubmitting ? (
-            <>
-              <Spinner />
-              Generating…
-            </>
-          ) : (
-            "Generate Plan"
-          )}
+          {isSubmitting ? "Generating…" : "Generate Plan"}
         </button>
-        {submitError ? (
-          <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
-            {submitError}
-          </div>
-        ) : null}
       </div>
     </div>
   );
-
-  function Spinner() {
-    return (
-      <span
-        className="inline-block h-4 w-4 rounded-full border-2 border-black/30 border-t-black animate-spin"
-        aria-label="Loading"
-      />
-    );
-  }
 }
