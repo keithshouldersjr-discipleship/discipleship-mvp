@@ -147,6 +147,71 @@ const TeacherModuleSchema = z.object({
   }),
 });
 
+// --- Add below TeacherModuleSchema (or near it) ---
+
+const PastorLeaderModuleSchema = z.object({
+  planOverview: z.object({
+    planType: z.enum(["Single Session", "Multi-Session", "Quarter/Semester"]),
+    cadence: z.string(), // e.g., "Weekly", "Biweekly", etc.
+    alignmentNotes: z.array(z.string()).min(1),
+  }),
+
+  sessions: z
+    .array(
+      z.object({
+        title: z.string(),
+        objective: z.string(),
+        leaderPrep: z.array(z.string()).min(1),
+        takeHomePractice: z.array(z.string()).min(1),
+        sessionPlan: SessionSchema,
+      })
+    )
+    .min(1),
+
+  leaderTrainingPlan: z.object({
+    trainingSessions: z
+      .array(
+        z.object({
+          title: z.string(),
+          durationMinutes: z.number().int().min(10).max(240),
+          agenda: z.array(z.string()).min(1),
+        })
+      )
+      .min(1),
+    coachingNotes: z.array(z.string()).min(1),
+  }),
+
+  measurementFramework: z.object({
+    inputsToTrack: z.array(z.string()).min(1),
+    outcomesToMeasure: z.array(z.string()).min(1),
+    simpleRubric: z.array(z.string()).min(1),
+  }),
+});
+
+const YouthLeaderModuleSchema = z.object({
+  activityIntegratedPlan: z.object({
+    sessions: z.array(SessionSchema).min(1),
+  }),
+
+  activityBank: z
+    .array(
+      z.object({
+        name: z.string(),
+        timeMinutes: z.number().int().min(5).max(240),
+        objectiveTie: z.string(),
+        setup: z.string(),
+        debriefQuestions: z.array(z.string()).min(1),
+      })
+    )
+    .min(1),
+
+  leaderNotes: z.object({
+    transitions: z.array(z.string()).min(1),
+    engagementMoves: z.array(z.string()).min(1),
+    guardrails: z.array(z.string()).min(1),
+  }),
+});
+
 export const BlueprintSchema = z.object({
   header: z.object({
     title: z.string(),
@@ -197,13 +262,10 @@ export const BlueprintSchema = z.object({
   }),
 
   modules: z.object({
-    // ✅ strongly typed (fixes your Vercel TS error)
-    teacher: TeacherModuleSchema.optional(),
-
-    // Leave these permissive until you’re rendering them safely everywhere.
-    pastorLeader: z.unknown().optional(),
-    youthLeader: z.unknown().optional(),
-  }),
+  teacher: TeacherModuleSchema.optional(),
+  pastorLeader: PastorLeaderModuleSchema.optional(),
+  youthLeader: YouthLeaderModuleSchema.optional(),
+}),
 
   recommendedResources: z
     .array(
