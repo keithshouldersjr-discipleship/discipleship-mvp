@@ -19,9 +19,7 @@ export function AppTopBar() {
 
           <div className="leading-tight">
             <div className="text-sm text-white/60">Discipleship by Design</div>
-            <div className="text-xs text-white/40">
-              Blueprints for Disciple-Making
-            </div>
+            <div className="text-xs text-white/40">Teach With Intent</div>
           </div>
         </Link>
 

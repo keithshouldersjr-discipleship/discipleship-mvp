@@ -75,7 +75,7 @@ export async function fetchMyBlueprints(): Promise<BlueprintListItem[]> {
     id: row.id,
     createdAt: row.created_at,
     title: row.blueprint.header?.title ?? "Untitled Blueprint",
-    track: row.blueprint.header?.track ?? "—",
+    track: row.blueprint.header?.role ?? "—",
     groupName: row.blueprint.header?.preparedFor?.groupName ?? "—",
   }));
 }

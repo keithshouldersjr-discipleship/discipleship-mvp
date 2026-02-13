@@ -28,7 +28,7 @@ export default function Home() {
           </h1>
 
           <p className="mt-3 mx-auto max-w-xl text-lg text-white/80">
-            Blueprints for Disciple-Making
+            Teach With Intent
           </p>
 
           <Link
