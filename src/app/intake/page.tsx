@@ -198,7 +198,7 @@ export default function IntakePage() {
           <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-black">
             <Image
               src="/dd-logo.png"
-              alt="Discipleship Design"
+              alt="Discipleship By Design"
               fill
               className="object-contain p-1"
               priority

@@ -372,14 +372,14 @@ function NotFoundView() {
           <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-black">
             <Image
               src="/dd-logo.png"
-              alt="Discipleship Design"
+              alt="Discipleship By Design"
               fill
               className="object-contain p-1"
               priority
             />
           </div>
           <div className="leading-tight">
-            <div className="text-sm text-white/60">Discipleship Design</div>
+            <div className="text-sm text-white/60">Discipleship By Design</div>
             <div className="font-semibold tracking-tight text-[#C6A75E]">
               Playbook not found
             </div>
@@ -447,7 +447,7 @@ export default async function ResultPage({
               <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-black">
                 <Image
                   src="/dd-logo.png"
-                  alt="Discipleship Design"
+                  alt="Discipleship By Design"
                   fill
                   className="object-contain p-1"
                   priority
