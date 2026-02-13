@@ -1,53 +1,135 @@
 import React from "react";
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  type DocumentProps,
+} from "@react-pdf/renderer";
 import type { Playbook } from "@/lib/schema";
 
 const styles = StyleSheet.create({
   page: { padding: 36, fontSize: 11, fontFamily: "Helvetica", color: "#111" },
-  title: { fontSize: 18, fontWeight: 700, marginBottom: 8 },
-  label: { fontSize: 9, color: "#666", marginTop: 10 },
-  body: { fontSize: 11, lineHeight: 1.35, marginTop: 4 },
-  card: { marginTop: 8, padding: 10, borderWidth: 1, borderColor: "#ddd" },
+  title: { fontSize: 18, fontWeight: 700, marginBottom: 6 },
+  meta: { fontSize: 10, color: "#555", marginBottom: 10 },
+  section: { marginTop: 12 },
+  h2: { fontSize: 12, fontWeight: 700, marginBottom: 6 },
+  card: {
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    borderRadius: 8,
+    padding: 10,
+  },
+  p: { lineHeight: 1.35 },
+  li: { marginTop: 3, lineHeight: 1.25 },
+  muted: { color: "#777" },
 });
 
-export function PlaybookPdf({ playbook }: { playbook: Playbook }) {
+function safeStr(v: unknown, fallback = ""): string {
+  return typeof v === "string" && v.trim().length ? v : fallback;
+}
+
+function safeArr(v: unknown): string[] {
+  return Array.isArray(v)
+    ? v.filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+    : [];
+}
+
+export function buildPlaybookPdfDocument(
+  playbook: Playbook,
+): React.ReactElement<DocumentProps> {
+  // ✅ Guard against missing branches
+  const header = (playbook as Playbook).header;
+  const overview = (playbook as Playbook).overview;
+
+  const title = safeStr(header?.title, "Formatio Playbook");
+  const track = safeStr(header?.track, "—");
+  const leaderName = safeStr(header?.preparedFor?.leaderName, "—");
+  const groupName = safeStr(header?.preparedFor?.groupName, "—");
+
+  const execSummary = safeStr(
+    overview?.executiveSummary,
+    "No summary available.",
+  );
+  const formationGoal = safeStr(
+    overview?.outcomes?.formationGoal,
+    "No formation goal provided.",
+  );
+
+  const indicators = safeArr(overview?.outcomes?.measurableIndicators);
+  const blooms = Array.isArray(overview?.bloomsObjectives)
+    ? overview.bloomsObjectives
+    : [];
+
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
-        {/* If you see these lines, the PDF pipeline is working */}
-        <Text style={styles.title}>{playbook.header.title}</Text>
-        <Text>Track: {playbook.header.track}</Text>
-        <Text>Prepared for: {playbook.header.preparedFor.leaderName}</Text>
+        {/* Always visible */}
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.meta}>
+          Track: {track} · Prepared for: {leaderName} · Group: {groupName}
+        </Text>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>Executive Summary</Text>
-          <Text style={styles.body}>{playbook.overview.executiveSummary}</Text>
+        <View style={styles.section}>
+          <Text style={styles.h2}>Executive Summary</Text>
+          <View style={styles.card}>
+            <Text style={styles.p}>{execSummary}</Text>
+          </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>Formation Goal</Text>
-          <Text style={styles.body}>
-            {playbook.overview.outcomes.formationGoal}
+        <View style={styles.section}>
+          <Text style={styles.h2}>Formation Goal</Text>
+          <View style={styles.card}>
+            <Text style={styles.p}>{formationGoal}</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.h2}>Measurable Indicators</Text>
+          <View style={styles.card}>
+            {indicators.length ? (
+              indicators.map((it, i) => (
+                <Text key={i} style={styles.li}>
+                  • {it}
+                </Text>
+              ))
+            ) : (
+              <Text style={[styles.p, styles.muted]}>
+                No indicators were provided.
+              </Text>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.h2}>Bloom’s Objectives</Text>
+          <View style={styles.card}>
+            {blooms.length ? (
+              blooms.slice(0, 6).map((b, i) => (
+                <View key={i} style={{ marginTop: i === 0 ? 0 : 8 }}>
+                  <Text style={{ fontSize: 10, fontWeight: 700 }}>
+                    {safeStr(b?.level, `Objective ${i + 1}`)}
+                  </Text>
+                  <Text style={styles.p}>{safeStr(b?.objective, "—")}</Text>
+                  <Text style={[styles.p, styles.muted]}>
+                    Evidence: {safeStr(b?.evidence, "—")}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text style={[styles.p, styles.muted]}>
+                No Bloom objectives were provided.
+              </Text>
+            )}
+          </View>
+        </View>
+
+        <View style={{ marginTop: 16 }}>
+          <Text style={[styles.meta, styles.muted]}>
+            Generated by Formatio · {new Date().toLocaleDateString()}
           </Text>
         </View>
-
-        <View style={styles.card}>
-          <Text style={styles.label}>First Bloom Objective</Text>
-          <Text style={styles.body}>
-            {playbook.overview.bloomsObjectives[0]?.level}:{" "}
-            {playbook.overview.bloomsObjectives[0]?.objective}
-          </Text>
-        </View>
-      </Page>
-    </Document>
-  );
-}
-
-export function buildPlaybookPdfDocument(playbook: Playbook) {
-  return (
-    <Document>
-      <Page size="LETTER">
-        <Text>{playbook.header.title}</Text>
       </Page>
     </Document>
   );

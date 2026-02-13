@@ -1,20 +1,13 @@
-import { NextResponse } from "next/server";
-import { pdf } from "@react-pdf/renderer";
 import { fetchPlaybookById } from "@/lib/playbook-repo";
-import { buildPlaybookPdfDocument } from "@/lib/pdf/playbook-pdf";
+import { pdf } from "@react-pdf/renderer";
+import { buildPlaybookPdfDocument } from "../../../../../lib/pdf/playbook-pdf";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type PdfInstance = {
-  toBuffer: () => Promise<Uint8Array>;
+  toBlob: () => Promise<Blob>;
 };
-
-function toArrayBuffer(u8: Uint8Array): ArrayBuffer {
-  const ab = new ArrayBuffer(u8.byteLength);
-  new Uint8Array(ab).set(u8);
-  return ab;
-}
 
 export async function GET(
   _req: Request,
@@ -24,20 +17,32 @@ export async function GET(
 
   const playbook = await fetchPlaybookById(id);
   if (!playbook) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return new Response(JSON.stringify({ error: "Not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  // ✅ This returns an actual <Document/> element (not a component element)
   const doc = buildPlaybookPdfDocument(playbook);
 
+  // ✅ Use toBlob() → arrayBuffer() (most reliable)
   const instance = pdf(doc) as unknown as PdfInstance;
-  const bytes = await instance.toBuffer();
+  const blob = await instance.toBlob();
+  const arrayBuffer = await blob.arrayBuffer();
+
+  // Hard guard: never return a “blank” PDF file
+  if (arrayBuffer.byteLength === 0) {
+    return new Response(
+      JSON.stringify({ error: "PDF renderer returned 0 bytes." }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 
   const filenameSafe =
     playbook.header.title.replace(/[^a-z0-9]+/gi, "-").toLowerCase() ||
     "playbook";
 
-  return new NextResponse(toArrayBuffer(bytes), {
+  return new Response(arrayBuffer, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="formatio-${filenameSafe}.pdf"`,
