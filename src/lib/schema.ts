@@ -64,11 +64,11 @@ export const IntakeSchema = z
     }
 
     // Only curriculum requires time horizon
-    if (val.task === "Building A Curriculum" && !val.timeHorizon) {
+    if (val.task === "Build Curriculum" && !val.timeHorizon) {
       ctx.addIssue({
         code: "custom",
         path: ["timeHorizon"],
-        message: "Time horizon is required when building a curriculum.",
+        message: "Time horizon is required when Build Curriculum.",
       });
     }
   });

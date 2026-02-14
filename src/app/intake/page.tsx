@@ -165,7 +165,7 @@ export default function IntakePage() {
   const next = () => setStep((s) => Math.min(s + 1, 4));
   const back = () => setStep((s) => Math.max(s - 1, 1));
 
-  const requiresHorizon = formData.task === "Building A Curriculum";
+  const requiresHorizon = formData.task === "Build Curriculum";
 
   const canGoStep1 =
     formData.task !== "" && (!requiresHorizon || formData.timeHorizon !== "");
@@ -352,7 +352,7 @@ function StepOneTask({
   next: () => void;
   canNext: boolean;
 }) {
-  const requiresHorizon = formData.task === "Building A Curriculum";
+  const requiresHorizon = formData.task === "Build Curriculum";
 
   return (
     <div className="space-y-8">
@@ -375,8 +375,7 @@ function StepOneTask({
                   ...p,
                   task: t,
                   // reset horizon if switching away from curriculum
-                  timeHorizon:
-                    t === "Building A Curriculum" ? p.timeHorizon : "",
+                  timeHorizon: t === "Build Curriculum" ? p.timeHorizon : "",
                 }))
               }
             >

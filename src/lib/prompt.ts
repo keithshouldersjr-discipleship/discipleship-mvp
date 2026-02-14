@@ -51,13 +51,13 @@ Non-negotiable design principles:
    - The blueprint should “feel” designed around the top 1–2 constraints.
 
 Task-specific requirements:
-- Teaching a Class:
+- Teach A Class:
   - Prioritize clarity, scripture comprehension, guided discussion, and one concrete practice step.
   - Include recall → discussion → reflection/application rhythm.
 - Leading a Workshop:
   - Prioritize participation, exercises, debriefs, and group interaction.
   - Include at least one hands-on activity with a clear debrief.
-- Building a Curriculum:
+- Build Curriculum:
   - Prioritize scope/sequence and progression across sessions.
   - Ensure continuity: each session builds toward cumulative formation outcomes.
   - Include simple leader training / coaching notes and a measurement framework.

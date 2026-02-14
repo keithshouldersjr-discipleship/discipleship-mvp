@@ -42,9 +42,9 @@ export type Duration = (typeof DurationOptions)[number];
 
 // src/lib/options.ts
 export const TaskOptions = [
-  "Teaching A Class",
+  "Teach A Class",
   "Leading A Workshop",
-  "Building A Curriculum",
+  "Build Curriculum",
 ] as const;
 
 export type Task = (typeof TaskOptions)[number];
