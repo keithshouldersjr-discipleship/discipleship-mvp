@@ -5,50 +5,190 @@ import {
   Text,
   View,
   StyleSheet,
-  type DocumentProps,
+  Image,
   Link,
+  type DocumentProps,
 } from "@react-pdf/renderer";
 import type { Blueprint } from "@/lib/schema";
 
+/* ----------------------------------
+   Brand Colors
+----------------------------------- */
+
+const GOLD = "#C6A75E";
+const DARK = "#0B0B0C";
+const PANEL = "#141416";
+const BORDER = "#E5E7EB";
+const TEXT_DARK = "#111827";
+const MUTED_DARK = "#6B7280";
+
+/* ----------------------------------
+   Styles
+----------------------------------- */
+
 const styles = StyleSheet.create({
-  page: { padding: 36, fontSize: 11, fontFamily: "Helvetica", color: "#111" },
-  title: { fontSize: 18, fontWeight: 700, marginBottom: 6 },
-  meta: { fontSize: 10, color: "#555", marginBottom: 10 },
-  section: { marginTop: 14 },
-  h2: { fontSize: 12, fontWeight: 700, marginBottom: 6 },
-  h3: { fontSize: 11, fontWeight: 700, marginBottom: 4 },
+  /* ===== COVER PAGE ===== */
+  coverPage: {
+    padding: 60,
+    backgroundColor: DARK,
+    color: "#FFFFFF",
+    justifyContent: "center",
+  },
+
+  coverLogoWrap: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+
+  coverLogo: {
+    width: 70,
+    height: 70,
+    marginBottom: 20,
+  },
+
+  coverTitle: {
+    fontSize: 26,
+    fontWeight: 700,
+    color: GOLD,
+    textAlign: "center",
+    marginBottom: 10,
+  },
+
+  coverSubtitle: {
+    fontSize: 14,
+    textAlign: "center",
+    opacity: 0.8,
+    marginBottom: 30,
+  },
+
+  coverMeta: {
+    fontSize: 12,
+    textAlign: "center",
+    opacity: 0.7,
+    marginBottom: 6,
+  },
+
+  coverFooter: {
+    position: "absolute",
+    bottom: 40,
+    left: 60,
+    right: 60,
+    textAlign: "center",
+    fontSize: 10,
+    opacity: 0.5,
+  },
+
+  /* ===== INTERIOR PAGES ===== */
+
+  page: {
+    paddingTop: 70,
+    paddingBottom: 50,
+    paddingHorizontal: 50,
+    backgroundColor: "#FFFFFF",
+    color: TEXT_DARK,
+    fontSize: 11,
+    fontFamily: "Helvetica",
+  },
+
+  header: {
+    position: "absolute",
+    top: 30,
+    left: 50,
+    right: 50,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 9,
+    color: MUTED_DARK,
+  },
+
+  footer: {
+    position: "absolute",
+    bottom: 25,
+    left: 50,
+    right: 50,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 9,
+    color: MUTED_DARK,
+  },
+
+  title: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: GOLD,
+    marginBottom: 6,
+  },
+
+  section: {
+    marginTop: 18,
+  },
+
+  sectionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  sectionBar: {
+    width: 4,
+    height: 14,
+    backgroundColor: GOLD,
+    marginRight: 8,
+  },
+
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: 700,
+  },
+
   card: {
     borderWidth: 1,
-    borderColor: "#e5e5e5",
-    borderRadius: 8,
-    padding: 10,
+    borderColor: BORDER,
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 6,
   },
-  p: { lineHeight: 1.35 },
-  li: { marginTop: 3, lineHeight: 1.25 },
-  muted: { color: "#777" },
-  grid2: { flexDirection: "row", gap: 10 },
-  col: { flex: 1 },
-  pillRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 6 },
-  pill: {
-    borderWidth: 1,
-    borderColor: "#ddd",
+
+  paragraph: {
+    lineHeight: 1.5,
+  },
+
+  bulletRow: {
+    flexDirection: "row",
+    marginTop: 5,
+  },
+
+  bulletDot: {
+    width: 5,
+    height: 5,
     borderRadius: 999,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    fontSize: 9,
-    color: "#444",
+    backgroundColor: GOLD,
+    marginTop: 4,
+    marginRight: 8,
   },
-  session: {
-    marginTop: 8,
+
+  bulletText: {
+    flex: 1,
+    lineHeight: 1.4,
+  },
+
+  resourceCard: {
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 10,
+    borderColor: BORDER,
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
   },
-  sessionTitle: { fontSize: 11, fontWeight: 700, marginBottom: 2 },
-  small: { fontSize: 9, color: "#666" },
-  link: { color: "#0b57d0", fontSize: 10 },
+
+  link: {
+    fontSize: 9,
+    color: "#2563EB",
+  },
 });
+
+/* ----------------------------------
+   Helpers
+----------------------------------- */
 
 function safeStr(v: unknown, fallback = ""): string {
   return typeof v === "string" && v.trim().length ? v : fallback;
@@ -56,46 +196,35 @@ function safeStr(v: unknown, fallback = ""): string {
 
 function safeArr(v: unknown): string[] {
   return Array.isArray(v)
-    ? v.filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+    ? v.filter((x): x is string => typeof x === "string")
     : [];
 }
 
-type FlowItem = { segment: string; minutes: number; purpose: string };
-
-function safeFlow(v: unknown): FlowItem[] {
-  if (!Array.isArray(v)) return [];
-  return v
-    .filter(
-      (x): x is FlowItem =>
-        typeof x === "object" &&
-        x !== null &&
-        typeof (x as FlowItem).segment === "string" &&
-        typeof (x as FlowItem).minutes === "number" &&
-        typeof (x as FlowItem).purpose === "string",
-    )
-    .slice(0, 12);
-}
-
-function BulletList({
-  items,
-  emptyText,
-}: {
-  items: string[];
-  emptyText?: string;
-}) {
-  if (!items.length) {
-    return <Text style={[styles.p, styles.muted]}>{emptyText ?? "—"}</Text>;
-  }
+function SectionTitle({ title }: { title: string }) {
   return (
-    <>
-      {items.map((it, i) => (
-        <Text key={i} style={styles.li}>
-          • {it}
-        </Text>
-      ))}
-    </>
+    <View style={styles.sectionTitleRow}>
+      <View style={styles.sectionBar} />
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
   );
 }
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <View>
+      {items.map((it, i) => (
+        <View key={i} style={styles.bulletRow}>
+          <View style={styles.bulletDot} />
+          <Text style={styles.bulletText}>{it}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/* ----------------------------------
+   Main Builder
+----------------------------------- */
 
 export function buildBlueprintPdfDocument(
   blueprint: Blueprint,
@@ -103,300 +232,120 @@ export function buildBlueprintPdfDocument(
   const header = blueprint.header;
   const overview = blueprint.overview;
 
-  const title = safeStr(header?.title, "Discipleship by Design Blueprint");
-  const track = safeStr(header?.role, "—");
-  const leaderName = safeStr(header?.preparedFor?.leaderName, "—");
-  const groupName = safeStr(header?.preparedFor?.groupName, "—");
+  const title = safeStr(header?.title, "Blueprint");
+  const role = safeStr(header?.role);
+  const leader = safeStr(header?.preparedFor?.leaderName);
+  const group = safeStr(header?.preparedFor?.groupName);
 
-  const execSummary = safeStr(
-    overview?.executiveSummary,
-    "No summary available.",
-  );
-
-  const formationGoal = safeStr(
-    overview?.outcomes?.formationGoal,
-    "No formation goal provided.",
-  );
-
-  const indicators = safeArr(overview?.outcomes?.measurableIndicators);
-  const blooms = Array.isArray(overview?.bloomsObjectives)
-    ? overview.bloomsObjectives
-    : [];
-
-  // Teacher module (MVP-safe)
-  const teacher = blueprint.modules?.teacher ?? null;
-
-  // Resources
   const resources = Array.isArray(blueprint.recommendedResources)
     ? blueprint.recommendedResources
     : [];
 
   return (
     <Document>
-      {/* -----------------------------
-          Page 1: Overview
-      ------------------------------ */}
+      {/* ===========================
+          COVER PAGE
+      ============================ */}
+      <Page size="LETTER" style={styles.coverPage}>
+        <View style={styles.coverLogoWrap}>
+          {/* Replace with absolute path if needed */}
+          <Image
+            src={`${process.env.NEXT_PUBLIC_SITE_URL}/dd-logo.png`}
+            style={styles.coverLogo}
+          />
+        </View>
+
+        <Text style={styles.coverTitle}>{title}</Text>
+        <Text style={styles.coverSubtitle}>
+          Discipleship by Design Blueprint
+        </Text>
+
+        <Text style={styles.coverMeta}>Role: {role}</Text>
+        <Text style={styles.coverMeta}>Leader: {leader}</Text>
+        <Text style={styles.coverMeta}>Group: {group}</Text>
+
+        <Text style={styles.coverFooter}>
+          Teach With Intention · Generated {new Date().toLocaleDateString()}
+        </Text>
+      </Page>
+
+      {/* ===========================
+          INTERIOR PAGE
+      ============================ */}
       <Page size="LETTER" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header} fixed>
+          <Text>Discipleship by Design</Text>
+          <Text>{group}</Text>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer} fixed>
+          <Text>Teach With Intention</Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `Page ${pageNumber} of ${totalPages}`
+            }
+          />
+        </View>
+
         <Text style={styles.title}>{title}</Text>
 
-        <View style={styles.pillRow}>
-          <Text style={styles.pill}>Track: {track}</Text>
-          <Text style={styles.pill}>Prepared for: {leaderName}</Text>
-          <Text style={styles.pill}>Group: {groupName}</Text>
-        </View>
-
+        {/* Executive Summary */}
         <View style={styles.section}>
-          <Text style={styles.h2}>Executive Summary</Text>
+          <SectionTitle title="Executive Summary" />
           <View style={styles.card}>
-            <Text style={styles.p}>{execSummary}</Text>
+            <Text style={styles.paragraph}>
+              {safeStr(overview?.executiveSummary)}
+            </Text>
           </View>
         </View>
 
+        {/* Formation Goal */}
         <View style={styles.section}>
-          <Text style={styles.h2}>Formation Goal</Text>
+          <SectionTitle title="Formation Goal" />
           <View style={styles.card}>
-            <Text style={styles.p}>{formationGoal}</Text>
+            <Text style={styles.paragraph}>
+              {safeStr(overview?.outcomes?.formationGoal)}
+            </Text>
           </View>
         </View>
 
+        {/* Indicators */}
         <View style={styles.section}>
-          <Text style={styles.h2}>Measurable Indicators</Text>
+          <SectionTitle title="Measurable Indicators" />
           <View style={styles.card}>
             <BulletList
-              items={indicators}
-              emptyText="No indicators were provided."
+              items={safeArr(overview?.outcomes?.measurableIndicators)}
             />
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.h2}>Bloom’s Objectives</Text>
-          <View style={styles.card}>
-            {blooms.length ? (
-              blooms.slice(0, 6).map((b, i) => (
-                <View key={i} style={{ marginTop: i === 0 ? 0 : 8 }}>
-                  <Text style={{ fontSize: 10, fontWeight: 700 }}>
-                    {safeStr(b?.level, `Objective ${i + 1}`)}
+        {/* Resources */}
+        {resources.length > 0 && (
+          <View style={styles.section}>
+            <SectionTitle title="Recommended Resources" />
+            {resources.map((r, i) => (
+              <View key={i} style={styles.resourceCard}>
+                <Text style={{ fontWeight: 700, color: GOLD }}>
+                  {safeStr(r.title)}
+                </Text>
+                <Text style={{ fontSize: 10 }}>
+                  {safeStr(r.author)} · {safeStr(r.publisher)}
+                </Text>
+
+                {r.amazonUrl && (
+                  <Text style={{ marginTop: 4 }}>
+                    <Link src={r.amazonUrl} style={styles.link}>
+                      Amazon
+                    </Link>
                   </Text>
-                  <Text style={styles.p}>{safeStr(b?.objective, "—")}</Text>
-                  <Text style={[styles.small, { marginTop: 2 }]}>
-                    Evidence: {safeStr(b?.evidence, "—")}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <Text style={[styles.p, styles.muted]}>
-                No Bloom objectives were provided.
-              </Text>
-            )}
-          </View>
-        </View>
-
-        <View style={{ marginTop: 16 }}>
-          <Text style={[styles.meta, styles.muted]}>
-            Teach With Intent· {new Date().toLocaleDateString()}
-          </Text>
-        </View>
-      </Page>
-
-      {/* -----------------------------
-          Page 2: Teacher Module (only if present)
-      ------------------------------ */}
-      {teacher ? (
-        <Page size="LETTER" style={styles.page}>
-          <Text style={styles.title}>Teacher Module</Text>
-          <Text style={styles.meta}>
-            Practical prep + facilitation prompts for a strong class session.
-          </Text>
-
-          {/* Prep checklists */}
-          <View style={styles.section}>
-            <Text style={styles.h2}>Prep Checklist</Text>
-
-            <View style={styles.grid2}>
-              <View style={[styles.card, styles.col]}>
-                <Text style={styles.h3}>Before the week</Text>
-                <BulletList
-                  items={safeArr(teacher.prepChecklist?.beforeTheWeek)}
-                  emptyText="No items provided."
-                />
-              </View>
-
-              <View style={[styles.card, styles.col]}>
-                <Text style={styles.h3}>Day of</Text>
-                <BulletList
-                  items={safeArr(teacher.prepChecklist?.dayOf)}
-                  emptyText="No items provided."
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* Lesson plan sessions */}
-          <View style={styles.section}>
-            <Text style={styles.h2}>Lesson Plan</Text>
-            <View style={styles.card}>
-              <Text style={styles.small}>
-                Plan type: {safeStr(teacher.lessonPlan?.planType, "—")}
-              </Text>
-
-              {Array.isArray(teacher.lessonPlan?.sessions) &&
-              teacher.lessonPlan.sessions.length ? (
-                teacher.lessonPlan.sessions.slice(0, 8).map((s, i) => {
-                  const flow = safeFlow(s?.flow);
-                  return (
-                    <View key={i} style={styles.session}>
-                      <Text style={styles.sessionTitle}>
-                        {safeStr(s?.title, `Session ${i + 1}`)}
-                      </Text>
-                      <Text style={styles.small}>
-                        Duration:{" "}
-                        {typeof s?.durationMinutes === "number"
-                          ? `${s.durationMinutes} min`
-                          : "—"}
-                      </Text>
-
-                      {flow.length ? (
-                        <View style={{ marginTop: 6 }}>
-                          {flow.map((f, idx) => (
-                            <View key={idx} style={{ marginTop: 4 }}>
-                              <Text style={{ fontSize: 10, fontWeight: 700 }}>
-                                {safeStr(f.segment, "Segment")} ·{" "}
-                                {typeof f.minutes === "number"
-                                  ? `${f.minutes} min`
-                                  : "—"}
-                              </Text>
-                              <Text style={styles.p}>
-                                {safeStr(f.purpose, "—")}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                      ) : (
-                        <Text
-                          style={[styles.p, styles.muted, { marginTop: 6 }]}
-                        >
-                          No session flow provided.
-                        </Text>
-                      )}
-                    </View>
-                  );
-                })
-              ) : (
-                <Text style={[styles.p, styles.muted, { marginTop: 8 }]}>
-                  No sessions were provided.
-                </Text>
-              )}
-            </View>
-          </View>
-
-          {/* Facilitation prompts */}
-          <View style={styles.section}>
-            <Text style={styles.h2}>Facilitation Prompts</Text>
-
-            <View style={styles.grid2}>
-              <View style={[styles.card, styles.col]}>
-                <Text style={styles.h3}>Opening questions</Text>
-                <BulletList
-                  items={safeArr(teacher.facilitationPrompts?.openingQuestions)}
-                  emptyText="No opening questions provided."
-                />
-              </View>
-
-              <View style={[styles.card, styles.col]}>
-                <Text style={styles.h3}>Discussion questions</Text>
-                <BulletList
-                  items={safeArr(
-                    teacher.facilitationPrompts?.discussionQuestions,
-                  )}
-                  emptyText="No discussion questions provided."
-                />
-              </View>
-            </View>
-
-            <View style={[styles.card, { marginTop: 10 }]}>
-              <Text style={styles.h3}>Application prompts</Text>
-              <BulletList
-                items={safeArr(teacher.facilitationPrompts?.applicationPrompts)}
-                emptyText="No application prompts provided."
-              />
-            </View>
-          </View>
-
-          {/* Follow up */}
-          <View style={styles.section}>
-            <Text style={styles.h2}>Follow-up Plan</Text>
-            <View style={styles.grid2}>
-              <View style={[styles.card, styles.col]}>
-                <Text style={styles.h3}>Same-week practice</Text>
-                <BulletList
-                  items={safeArr(teacher.followUpPlan?.sameWeekPractice)}
-                  emptyText="No same-week practice provided."
-                />
-              </View>
-              <View style={[styles.card, styles.col]}>
-                <Text style={styles.h3}>Next touchpoint</Text>
-                <BulletList
-                  items={safeArr(teacher.followUpPlan?.nextTouchpoint)}
-                  emptyText="No next touchpoint provided."
-                />
-              </View>
-            </View>
-          </View>
-        </Page>
-      ) : null}
-
-      {/* -----------------------------
-          Page 3: Resources (only if present)
-      ------------------------------ */}
-      {resources.length ? (
-        <Page size="LETTER" style={styles.page}>
-          <Text style={styles.title}>Recommended Resources</Text>
-          <Text style={styles.meta}>
-            A short stack to deepen your practice and sharpen your plan.
-          </Text>
-
-          <View style={styles.section}>
-            {resources.slice(0, 8).map((r, i) => (
-              <View
-                key={i}
-                style={[styles.card, { marginTop: i === 0 ? 0 : 10 }]}
-              >
-                <Text style={{ fontSize: 11, fontWeight: 700 }}>
-                  {safeStr(r?.title, "Untitled Resource")}
-                </Text>
-                <Text style={styles.small}>
-                  {safeStr(r?.author, "—")} · {safeStr(r?.publisher, "—")}
-                </Text>
-
-                <View style={{ marginTop: 6 }}>
-                  {safeStr(r?.amazonUrl) ? (
-                    <Text style={styles.small}>
-                      Amazon:{" "}
-                      <Link src={safeStr(r.amazonUrl)} style={styles.link}>
-                        {safeStr(r.amazonUrl)}
-                      </Link>
-                    </Text>
-                  ) : null}
-
-                  {safeStr(r?.publisherUrl) ? (
-                    <Text style={styles.small}>
-                      Publisher:{" "}
-                      <Link src={safeStr(r.publisherUrl)} style={styles.link}>
-                        {safeStr(r.publisherUrl)}
-                      </Link>
-                    </Text>
-                  ) : null}
-                </View>
-
-                <Text style={[styles.p, { marginTop: 8 }]}>
-                  {safeStr(r?.whyThisHelps, "—")}
-                </Text>
+                )}
               </View>
             ))}
           </View>
-        </Page>
-      ) : null}
+        )}
+      </Page>
     </Document>
   );
 }
