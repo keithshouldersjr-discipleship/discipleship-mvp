@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { fetchMyBlueprints } from "@/lib/blueprint-repo";
 import { AppTopBar } from "@/components/AppTopBar";
+import type { BlueprintListItem } from "@/lib/blueprint-repo";
 
 export const dynamic = "force-dynamic";
 
@@ -58,7 +59,7 @@ export default async function BlueprintsPage() {
           </div>
         ) : (
           <div className="grid gap-4">
-            {items.map((bp) => (
+            {items.map((bp: BlueprintListItem) => (
               <div
                 key={bp.id}
                 className="rounded-3xl border border-white/10 bg-white/[0.03] p-6"
@@ -69,7 +70,7 @@ export default async function BlueprintsPage() {
                       {bp.title}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Pill>{bp.track}</Pill>
+                      <Pill>{bp.role}</Pill>
                       <Pill>{bp.groupName}</Pill>
                       <Pill>{new Date(bp.createdAt).toLocaleDateString()}</Pill>
                     </div>

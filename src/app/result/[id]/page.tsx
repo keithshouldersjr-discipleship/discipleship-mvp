@@ -2,6 +2,7 @@
 import Image from "next/image";
 import type { Blueprint } from "@/lib/schema";
 import { fetchBlueprintById } from "@/lib/blueprint-repo";
+import type { ReactNode } from "react";
 
 export const dynamic = "force-dynamic";
 
