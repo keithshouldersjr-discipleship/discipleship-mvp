@@ -54,7 +54,7 @@ Task-specific requirements:
 - Teach A Class:
   - Prioritize clarity, scripture comprehension, guided discussion, and one concrete practice step.
   - Include recall → discussion → reflection/application rhythm.
-- Leading a Workshop:
+- Lead A Workshop:
   - Prioritize participation, exercises, debriefs, and group interaction.
   - Include at least one hands-on activity with a clear debrief.
 - Build Curriculum:
