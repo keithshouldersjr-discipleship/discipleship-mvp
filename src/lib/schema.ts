@@ -26,12 +26,14 @@ const SettingSchema = z.enum(SettingOptions);
 const DurationSchema = z.enum(DurationOptions);
 const ConstraintSchema = z.enum(ConstraintOptions);
 
+/* ----------------------------------
+   INTAKE (unchanged)
+----------------------------------- */
+
 export const IntakeSchema = z
   .object({
-    // NEW: task is the primary selector
     task: TaskSchema,
 
-    // Audience/context
     ageGroup: AgeGroupSchema,
     groupName: z.string().min(1),
     leaderName: z.string().optional(),
@@ -47,14 +49,12 @@ export const IntakeSchema = z
 
     constraints: z.array(ConstraintSchema).max(2).optional(),
 
-    // Derived fields (optional, but present if you want to store them)
-    // These are set by prompt generation logic, not by UI.
+    // Derived fields (optional)
     role: RoleSchema.optional(),
     designType: DesignTypeSchema.optional(),
     timeHorizon: TimeHorizonSchema.optional(),
   })
   .superRefine((val, ctx) => {
-    // Duration custom requires minutes
     if (val.duration === "Custom" && typeof val.durationCustomMinutes !== "number") {
       ctx.addIssue({
         code: "custom",
@@ -76,36 +76,59 @@ export const IntakeSchema = z
 export type Intake = z.infer<typeof IntakeSchema>;
 
 /* ----------------------------------
-   BLUEPRINT OUTPUT SCHEMA
-   - Strongly type Teacher module to fix TS build errors
+   DBD METHOD TYPES (single model)
 ----------------------------------- */
 
-const BloomLevelSchema = z.enum([
-  "Remember",
-  "Understand",
-  "Apply",
-  "Analyze",
-  "Evaluate",
-  "Create",
-]);
+const DbdMovementSchema = z.enum(["Inform", "Inspire", "Assess"]);
+export type DbdMovement = z.infer<typeof DbdMovementSchema>;
+
+const HeadHeartHandsSchema = z.object({
+  head: z.string().min(3),
+  heart: z.string().min(3),
+  hands: z.string().min(3),
+});
+
+const EngagementSchema = z.object({
+  inform: z.array(z.string().min(2)).min(1),
+  inspire: z.array(z.string().min(2)).min(1),
+  assess: z.array(z.string().min(2)).min(1),
+});
+
+/* ----------------------------------
+   SESSION / FLOW (DBD-native)
+----------------------------------- */
 
 const FlowItemSchema = z.object({
-  segment: z.string(),
+  segment: z.string().min(2),
   minutes: z.number().int().min(1).max(240),
-  purpose: z.string(),
+
+  // plain language for volunteers
+  purpose: z.string().min(3),
+
+  // REQUIRED: explicitly tagged as Inform/Inspire/Assess
+  movement: DbdMovementSchema,
 });
 
 const SessionSchema = z.object({
-  title: z.string(),
+  title: z.string().min(1),
   durationMinutes: z.number().int().min(10).max(240),
+
+  // REQUIRED for every session
+  objectives: HeadHeartHandsSchema,
+  engagement: EngagementSchema,
+
+  // Still available for detailed plans + PDF rendering
   flow: z.array(FlowItemSchema).min(1),
 });
 
-// Keep this aligned with what your prompt produces for teacher module
+/* ----------------------------------
+   MODULES (DBD-native)
+----------------------------------- */
+
 const TeacherModuleSchema = z.object({
   prepChecklist: z.object({
-    beforeTheWeek: z.array(z.string()).min(1),
-    dayOf: z.array(z.string()).min(1),
+    beforeTheWeek: z.array(z.string().min(2)).min(1),
+    dayOf: z.array(z.string().min(2)).min(1),
   }),
 
   lessonPlan: z.object({
@@ -113,36 +136,30 @@ const TeacherModuleSchema = z.object({
     sessions: z.array(SessionSchema).min(1),
   }),
 
-  facilitationPrompts: z.object({
-    openingQuestions: z.array(z.string()).min(1),
-    discussionQuestions: z.array(z.string()).min(1),
-    applicationPrompts: z.array(z.string()).min(1),
-  }),
-
   followUpPlan: z.object({
-    sameWeekPractice: z.array(z.string()).min(1),
-    nextTouchpoint: z.array(z.string()).min(1),
+    sameWeekPractice: z.array(z.string().min(2)).min(1),
+    nextTouchpoint: z.array(z.string().min(2)).min(1),
   }),
 });
-
-// --- Add below TeacherModuleSchema (or near it) ---
 
 const PastorLeaderModuleSchema = z.object({
   planOverview: z.object({
     planType: z.enum(["Single Session", "Multi-Session", "Quarter/Semester"]),
-    cadence: z.string(), // e.g., "Weekly", "Biweekly", etc.
-    alignmentNotes: z.array(z.string()).min(1),
+    cadence: z.string().min(2),
+    alignmentNotes: z.array(z.string().min(2)).min(1),
   }),
 
   sessions: z
     .array(
       z.object({
-        title: z.string(),
-        objective: z.string(),
-        leaderPrep: z.array(z.string()).min(1),
-        takeHomePractice: z.array(z.string()).min(1),
+        title: z.string().min(1),
+        objective: z.string().min(3),
+        leaderPrep: z.array(z.string().min(2)).min(1),
+        takeHomePractice: z.array(z.string().min(2)).min(1),
+
+        // Use the same DBD-native session model for consistency
         sessionPlan: SessionSchema,
-      })
+      }),
     )
     .min(1),
 
@@ -150,19 +167,19 @@ const PastorLeaderModuleSchema = z.object({
     trainingSessions: z
       .array(
         z.object({
-          title: z.string(),
+          title: z.string().min(1),
           durationMinutes: z.number().int().min(10).max(240),
-          agenda: z.array(z.string()).min(1),
-        })
+          agenda: z.array(z.string().min(2)).min(1),
+        }),
       )
       .min(1),
-    coachingNotes: z.array(z.string()).min(1),
+    coachingNotes: z.array(z.string().min(2)).min(1),
   }),
 
   measurementFramework: z.object({
-    inputsToTrack: z.array(z.string()).min(1),
-    outcomesToMeasure: z.array(z.string()).min(1),
-    simpleRubric: z.array(z.string()).min(1),
+    inputsToTrack: z.array(z.string().min(2)).min(1),
+    outcomesToMeasure: z.array(z.string().min(2)).min(1),
+    simpleRubric: z.array(z.string().min(2)).min(1),
   }),
 });
 
@@ -174,36 +191,38 @@ const YouthLeaderModuleSchema = z.object({
   activityBank: z
     .array(
       z.object({
-        name: z.string(),
+        name: z.string().min(1),
         timeMinutes: z.number().int().min(5).max(240),
-        objectiveTie: z.string(),
-        setup: z.string(),
-        debriefQuestions: z.array(z.string()).min(1),
-      })
+        objectiveTie: z.string().min(3),
+        setup: z.string().min(3),
+        debriefQuestions: z.array(z.string().min(2)).min(1),
+      }),
     )
     .min(1),
 
   leaderNotes: z.object({
-    transitions: z.array(z.string()).min(1),
-    engagementMoves: z.array(z.string()).min(1),
-    guardrails: z.array(z.string()).min(1),
+    transitions: z.array(z.string().min(2)).min(1),
+    engagementMoves: z.array(z.string().min(2)).min(1),
+    guardrails: z.array(z.string().min(2)).min(1),
   }),
 });
 
+/* ----------------------------------
+   BLUEPRINT OUTPUT (DBD-native)
+----------------------------------- */
+
 export const BlueprintSchema = z.object({
   header: z.object({
-    title: z.string(),
+    title: z.string().min(1),
     subtitle: z.string().optional(),
 
     role: z.enum(RoleOptions),
 
     preparedFor: z.object({
-      leaderName: z.string(),
-      groupName: z.string(),
+      leaderName: z.string().min(1),
+      groupName: z.string().min(1),
     }),
 
-    // NOTE: keep these typed loosely enough to tolerate "Other" handling,
-    // but still structured enough for UI.
     context: z.object({
       setting: z.enum(SettingOptions).or(z.string()),
       ageGroup: z.enum(AgeGroupOptions).or(z.string()),
@@ -212,49 +231,39 @@ export const BlueprintSchema = z.object({
       timeHorizon: z.enum(TimeHorizonOptions).or(z.string()),
 
       durationMinutes: z.number().int().min(10).max(240),
-
-      // In your prompt you often send "" or actual string
       topicOrText: z.string(),
-
       constraints: z.array(z.string()).optional(),
     }),
   }),
 
   overview: z.object({
-    executiveSummary: z.string(),
+    executiveSummary: z.string().min(10),
 
     outcomes: z.object({
-      formationGoal: z.string(),
-      measurableIndicators: z.array(z.string()).min(3),
+      formationGoal: z.string().min(10),
+      measurableIndicators: z.array(z.string().min(3)).min(3),
     }),
 
-    bloomsObjectives: z
-      .array(
-        z.object({
-          level: BloomLevelSchema,
-          objective: z.string(),
-          evidence: z.string(),
-        })
-      )
-      .length(6),
+    // NEW: single “Objectives” model (required)
+    headHeartHandsObjectives: HeadHeartHandsSchema,
   }),
 
   modules: z.object({
-  teacher: TeacherModuleSchema.optional(),
-  pastorLeader: PastorLeaderModuleSchema.optional(),
-  youthLeader: YouthLeaderModuleSchema.optional(),
-}),
+    teacher: TeacherModuleSchema.optional(),
+    pastorLeader: PastorLeaderModuleSchema.optional(),
+    youthLeader: YouthLeaderModuleSchema.optional(),
+  }),
 
   recommendedResources: z
     .array(
       z.object({
-        title: z.string(),
-        author: z.string(),
-        publisher: z.string(),
-        amazonUrl: z.string(),
-        publisherUrl: z.string(),
-        whyThisHelps: z.string(),
-      })
+        title: z.string().min(1),
+        author: z.string().min(1),
+        publisher: z.string().min(1),
+        amazonUrl: z.string().min(1),
+        publisherUrl: z.string().min(1),
+        whyThisHelps: z.string().min(10),
+      }),
     )
     .min(3),
 });

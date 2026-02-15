@@ -1,3 +1,4 @@
+// src/lib/pdf/blueprint-pdf.tsx
 import React from "react";
 import {
   Document,
@@ -207,6 +208,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  grid3: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
   sessionCard: {
     borderWidth: 1,
     borderColor: BORDER,
@@ -219,6 +225,29 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: 700,
     color: TEXT_DARK,
+  },
+
+  tagRow: {
+    flexDirection: "row",
+    gap: 6,
+    marginTop: 6,
+    flexWrap: "wrap",
+  },
+
+  tag: {
+    fontSize: 9,
+    borderWidth: 1,
+    borderColor: BORDER,
+    borderRadius: 999,
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    color: MUTED_DARK,
+  },
+
+  movementLabel: {
+    fontSize: 9,
+    fontWeight: 700,
+    color: GOLD,
   },
 });
 
@@ -236,7 +265,23 @@ function safeArr(v: unknown): string[] {
     : [];
 }
 
-type FlowItem = { segment: string; minutes: number; purpose: string };
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
+
+type DbdMovement = "Inform" | "Inspire" | "Assess";
+
+type FlowItem = {
+  segment: string;
+  minutes: number;
+  purpose: string;
+  movement: DbdMovement;
+};
+
+function safeMovement(v: unknown): DbdMovement | null {
+  if (v === "Inform" || v === "Inspire" || v === "Assess") return v;
+  return null;
+}
 
 function safeFlow(v: unknown): FlowItem[] {
   if (!Array.isArray(v)) return [];
@@ -247,12 +292,35 @@ function safeFlow(v: unknown): FlowItem[] {
         x !== null &&
         typeof (x as FlowItem).segment === "string" &&
         typeof (x as FlowItem).minutes === "number" &&
-        typeof (x as FlowItem).purpose === "string",
+        typeof (x as FlowItem).purpose === "string" &&
+        safeMovement((x as FlowItem).movement) !== null,
     )
-    .slice(0, 16);
+    .slice(0, 20);
 }
 
-type BloomObjective = { level: string; objective: string; evidence: string };
+type HeadHeartHands = { head: string; heart: string; hands: string };
+
+function safeHHH(v: unknown): HeadHeartHands | null {
+  if (!isRecord(v)) return null;
+  const head = safeStr(v["head"], "");
+  const heart = safeStr(v["heart"], "");
+  const hands = safeStr(v["hands"], "");
+  if (!head || !heart || !hands) return null;
+  return { head, heart, hands };
+}
+
+type Engagement = { inform: string[]; inspire: string[]; assess: string[] };
+
+function safeEngagement(v: unknown): Engagement | null {
+  if (!isRecord(v)) return null;
+
+  const inform = safeArr(v["inform"]);
+  const inspire = safeArr(v["inspire"]);
+  const assess = safeArr(v["assess"]);
+
+  if (!inform.length || !inspire.length || !assess.length) return null;
+  return { inform, inspire, assess };
+}
 
 type TeacherModule = {
   prepChecklist?: { beforeTheWeek?: string[]; dayOf?: string[] };
@@ -261,48 +329,20 @@ type TeacherModule = {
     sessions?: Array<{
       title?: string;
       durationMinutes?: number;
+      objectives?: unknown;
+      engagement?: unknown;
       flow?: unknown;
     }>;
-  };
-  facilitationPrompts?: {
-    openingQuestions?: string[];
-    discussionQuestions?: string[];
-    applicationPrompts?: string[];
   };
   followUpPlan?: { sameWeekPractice?: string[]; nextTouchpoint?: string[] };
 };
 
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null;
-}
-
-function readBlooms(overview: unknown): BloomObjective[] {
-  if (!isRecord(overview)) return [];
-
-  const candidate =
-    overview["bloomsObjectives"] ??
-    overview["bloomObjectives"] ??
-    overview["blooms"];
-
-  if (!Array.isArray(candidate)) return [];
-
-  return candidate
-    .filter(isRecord)
-    .map((b) => ({
-      level: safeStr(b["level"], ""),
-      objective: safeStr(b["objective"], ""),
-      evidence: safeStr(b["evidence"], ""),
-    }))
-    .filter((b) => b.level || b.objective || b.evidence);
-}
-
 function readTeacher(modules: unknown): TeacherModule | null {
   if (!isRecord(modules)) return null;
 
-  const candidate = modules["teacher"] ?? modules["teacherModule"];
+  const candidate = modules["teacher"];
   if (!isRecord(candidate)) return null;
 
-  // We keep it loose and let safeArr/safeStr handle missing fields.
   return candidate as unknown as TeacherModule;
 }
 
@@ -344,6 +384,69 @@ function BulletList({
   );
 }
 
+function HHHCard({ hhh }: { hhh: HeadHeartHands | null }) {
+  if (!hhh) {
+    return (
+      <Text style={[styles.paragraph, styles.muted]}>
+        No objectives provided.
+      </Text>
+    );
+  }
+
+  return (
+    <View style={styles.grid3}>
+      <View style={[styles.card, styles.col]}>
+        <Text style={styles.h3}>Head</Text>
+        <Text style={styles.paragraph}>{safeStr(hhh.head)}</Text>
+      </View>
+      <View style={[styles.card, styles.col]}>
+        <Text style={styles.h3}>Heart</Text>
+        <Text style={styles.paragraph}>{safeStr(hhh.heart)}</Text>
+      </View>
+      <View style={[styles.card, styles.col]}>
+        <Text style={styles.h3}>Hands</Text>
+        <Text style={styles.paragraph}>{safeStr(hhh.hands)}</Text>
+      </View>
+    </View>
+  );
+}
+
+function EngagementCard({ e }: { e: Engagement | null }) {
+  if (!e) {
+    return (
+      <Text style={[styles.paragraph, styles.muted]}>
+        No engagement plan provided.
+      </Text>
+    );
+  }
+
+  return (
+    <View style={styles.grid3}>
+      <View style={[styles.card, styles.col]}>
+        <Text style={styles.h3}>Inform</Text>
+        <Text style={styles.small}>Clarify truth (recall + understanding)</Text>
+        <BulletList items={e.inform} emptyText="—" />
+      </View>
+
+      <View style={[styles.card, styles.col]}>
+        <Text style={styles.h3}>Inspire</Text>
+        <Text style={styles.small}>
+          Connect truth to life (apply + analyze)
+        </Text>
+        <BulletList items={e.inspire} emptyText="—" />
+      </View>
+
+      <View style={[styles.card, styles.col]}>
+        <Text style={styles.h3}>Assess</Text>
+        <Text style={styles.small}>
+          Confirm growth + invite creation (evaluate + create)
+        </Text>
+        <BulletList items={e.assess} emptyText="—" />
+      </View>
+    </View>
+  );
+}
+
 /* ----------------------------------
    Main Builder
 ----------------------------------- */
@@ -369,7 +472,8 @@ export function buildBlueprintPdfDocument(
   );
   const indicators = safeArr(overview?.outcomes?.measurableIndicators);
 
-  const blooms = readBlooms(overview);
+  const hhhOverview = safeHHH(overview?.headHeartHandsObjectives);
+
   const teacher = readTeacher(blueprint.modules);
 
   const resources = Array.isArray(blueprint.recommendedResources)
@@ -385,6 +489,7 @@ export function buildBlueprintPdfDocument(
       ============================ */}
       <Page size="LETTER" style={styles.coverPage}>
         <View style={styles.coverLogoWrap}>
+          {/* ✅ Yes: you can print your logo on the cover page */}
           <Image src={`${siteUrl}/dd-logo.png`} style={styles.coverLogo} />
         </View>
 
@@ -451,29 +556,33 @@ export function buildBlueprintPdfDocument(
           </View>
         </View>
 
-        {/* Bloom’s Objectives */}
+        {/* Objectives (Head / Heart / Hands) */}
         <View style={styles.section}>
-          <SectionTitle title="Bloom’s Objectives" />
+          <SectionTitle title="Objectives (Head · Heart · Hands)" />
+          <Text style={[styles.small, { marginTop: 2 }]}>
+            Head: what they understand · Heart: what they value · Hands: what
+            they practice
+          </Text>
+          <View style={{ marginTop: 8 }}>
+            <HHHCard hhh={hhhOverview} />
+          </View>
+        </View>
+
+        {/* Method snapshot */}
+        <View style={styles.section}>
+          <SectionTitle title="The Three Movements" />
           <View style={styles.card}>
-            {blooms.length ? (
-              blooms.slice(0, 10).map((b, i) => (
-                <View key={i} style={{ marginTop: i === 0 ? 0 : 10 }}>
-                  <Text style={styles.h3}>
-                    {safeStr(b?.level, `Objective ${i + 1}`)}
-                  </Text>
-                  <Text style={styles.paragraph}>
-                    {safeStr(b?.objective, "—")}
-                  </Text>
-                  <Text style={[styles.small, { marginTop: 3 }]}>
-                    Evidence: {safeStr(b?.evidence, "—")}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <Text style={[styles.paragraph, styles.muted]}>
-                No Bloom objectives were provided.
+            <View style={styles.tagRow}>
+              <Text style={styles.tag}>Inform — clarify truth</Text>
+              <Text style={styles.tag}>Inspire — connect truth to life</Text>
+              <Text style={styles.tag}>
+                Assess — confirm growth + invite creation
               </Text>
-            )}
+            </View>
+            <Text style={[styles.paragraph, { marginTop: 8 }]}>
+              Each session uses these three movements so volunteers can teach
+              with confidence and leave with clarity.
+            </Text>
           </View>
         </View>
       </Page>
@@ -532,47 +641,80 @@ export function buildBlueprintPdfDocument(
 
               {Array.isArray(teacher?.lessonPlan?.sessions) &&
               teacher.lessonPlan.sessions.length ? (
-                teacher.lessonPlan.sessions.slice(0, 10).map((s, i) => {
+                teacher.lessonPlan.sessions.slice(0, 12).map((s, i) => {
                   const flow = safeFlow(s?.flow);
+                  const hhh = safeHHH(s?.objectives);
+                  const engagement = safeEngagement(s?.engagement);
+
+                  const duration =
+                    typeof s?.durationMinutes === "number"
+                      ? `${s.durationMinutes} min`
+                      : "—";
+
                   return (
                     <View key={i} style={styles.sessionCard}>
                       <Text style={styles.sessionTitle}>
                         {safeStr(s?.title, `Session ${i + 1}`)}
                       </Text>
-                      <Text style={styles.small}>
-                        Duration:{" "}
-                        {typeof s?.durationMinutes === "number"
-                          ? `${s.durationMinutes} min`
-                          : "—"}
-                      </Text>
+                      <Text style={styles.small}>Duration: {duration}</Text>
 
-                      {flow.length ? (
-                        <View style={{ marginTop: 8 }}>
-                          {flow.map((f, idx) => (
-                            <View key={idx} style={{ marginTop: 6 }}>
-                              <Text style={styles.h3}>
-                                {safeStr(f.segment, "Segment")} ·{" "}
-                                {typeof f.minutes === "number"
-                                  ? `${f.minutes} min`
-                                  : "—"}
-                              </Text>
-                              <Text style={styles.paragraph}>
-                                {safeStr(f.purpose, "—")}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                      ) : (
-                        <Text
-                          style={[
-                            styles.paragraph,
-                            styles.muted,
-                            { marginTop: 8 },
-                          ]}
-                        >
-                          No session flow provided.
+                      {/* Session objectives */}
+                      <View style={{ marginTop: 10 }}>
+                        <Text style={styles.h3}>
+                          Objectives (Head · Heart · Hands)
                         </Text>
-                      )}
+                        <HHHCard hhh={hhh} />
+                      </View>
+
+                      {/* Session engagement */}
+                      <View style={{ marginTop: 12 }}>
+                        <Text style={styles.h3}>
+                          Engagement (Inform · Inspire · Assess)
+                        </Text>
+                        <View style={{ marginTop: 6 }}>
+                          <EngagementCard e={engagement} />
+                        </View>
+                      </View>
+
+                      {/* Session flow */}
+                      <View style={{ marginTop: 12 }}>
+                        <Text style={styles.h3}>Session Flow</Text>
+                        <Text style={styles.small}>
+                          Minutes should sum to the session duration. Each
+                          segment is tagged.
+                        </Text>
+
+                        {flow.length ? (
+                          <View style={{ marginTop: 8 }}>
+                            {flow.map((f, idx) => (
+                              <View key={idx} style={{ marginTop: 8 }}>
+                                <Text style={styles.movementLabel}>
+                                  {safeStr(f.movement)}{" "}
+                                  <Text style={styles.small}>
+                                    · {safeStr(f.segment, "Segment")} ·{" "}
+                                    {typeof f.minutes === "number"
+                                      ? `${f.minutes} min`
+                                      : "—"}
+                                  </Text>
+                                </Text>
+                                <Text style={styles.paragraph}>
+                                  {safeStr(f.purpose, "—")}
+                                </Text>
+                              </View>
+                            ))}
+                          </View>
+                        ) : (
+                          <Text
+                            style={[
+                              styles.paragraph,
+                              styles.muted,
+                              { marginTop: 8 },
+                            ]}
+                          >
+                            No session flow provided.
+                          </Text>
+                        )}
+                      </View>
                     </View>
                   );
                 })
@@ -583,41 +725,6 @@ export function buildBlueprintPdfDocument(
                   No sessions were provided.
                 </Text>
               )}
-            </View>
-          </View>
-
-          {/* Facilitation Prompts */}
-          <View style={styles.section}>
-            <SectionTitle title="Facilitation Prompts" />
-            <View style={styles.grid2}>
-              <View style={[styles.card, styles.col]}>
-                <Text style={styles.h3}>Opening questions</Text>
-                <BulletList
-                  items={safeArr(
-                    teacher?.facilitationPrompts?.openingQuestions,
-                  )}
-                  emptyText="No opening questions provided."
-                />
-              </View>
-              <View style={[styles.card, styles.col]}>
-                <Text style={styles.h3}>Discussion questions</Text>
-                <BulletList
-                  items={safeArr(
-                    teacher?.facilitationPrompts?.discussionQuestions,
-                  )}
-                  emptyText="No discussion questions provided."
-                />
-              </View>
-            </View>
-
-            <View style={styles.card}>
-              <Text style={styles.h3}>Application prompts</Text>
-              <BulletList
-                items={safeArr(
-                  teacher?.facilitationPrompts?.applicationPrompts,
-                )}
-                emptyText="No application prompts provided."
-              />
             </View>
           </View>
 

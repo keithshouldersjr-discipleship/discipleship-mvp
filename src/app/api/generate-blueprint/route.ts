@@ -1,10 +1,14 @@
 // src/app/api/generate-blueprint/route.ts
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import { IntakeSchema, BlueprintSchema, type Intake, type Blueprint } from "@/lib/schema";
+import {
+  IntakeSchema,
+  BlueprintSchema,
+  type Intake,
+  type Blueprint,
+} from "@/lib/schema";
 import { buildBlueprintPrompt } from "@/lib/prompt";
 import { supabaseRoute } from "@/lib/supabase-route";
-// ADD these imports at top
 import {
   deriveRoleFromTask,
   deriveDesignTypeFromTask,
@@ -23,7 +27,8 @@ type ErrBody = {
   candidateKeys?: string[];
 };
 
-const err = (status: number, body: ErrBody) => NextResponse.json(body, { status });
+const err = (status: number, body: ErrBody) =>
+  NextResponse.json(body, { status });
 
 function unwrapBlueprintCandidate(v: unknown): unknown {
   if (typeof v === "string") {
@@ -37,7 +42,8 @@ function unwrapBlueprintCandidate(v: unknown): unknown {
   if (typeof v !== "object" || v === null) return v;
 
   const obj = v as Record<string, unknown>;
-  if (typeof obj.blueprint === "object" && obj.blueprint !== null) return obj.blueprint;
+  if (typeof obj.blueprint === "object" && obj.blueprint !== null)
+    return obj.blueprint;
   if (typeof obj.data === "object" && obj.data !== null) return obj.data;
   if (typeof obj.result === "object" && obj.result !== null) return obj.result;
 
@@ -65,95 +71,36 @@ async function callModel(client: OpenAI, prompt: string) {
   });
 }
 
-export async function POST(req: Request) {
-  const requestId = crypto.randomUUID();
+/**
+ * Repair prompt aligned to your NEW Discipleship by Design schema:
+ * - Head/Heart/Hands objectives
+ * - Inform/Inspire/Assess engagement
+ * - Optional Bloom objectives
+ */
+function buildRepairPrompt(args: {
+  flatErrors: unknown;
+  badJsonRaw: string;
+}) {
+  const { flatErrors, badJsonRaw } = args;
 
-  try {
-    // 1) Auth check (user context)
-    const supabase = await supabaseRoute();
-    const { data: userRes, error: userErr } = await supabase.auth.getUser();
+  return `
+Fix the JSON to match the REQUIRED schema EXACTLY. Return ONLY the corrected JSON object.
 
-    if (userErr) {
-      console.error(`[generate-blueprint] auth error requestId=${requestId}`, userErr);
-      return err(401, { error: "Unauthorized", stage: "auth" });
-    }
-    if (!userRes.user) {
-      return err(401, { error: "Unauthorized", stage: "auth" });
-    }
+IMPORTANT:
+- Use volunteer-friendly language (simple, practical, no academic jargon).
+- The Discipleship by Design method is mandatory:
+  - Each session includes objectives: head, heart, hands.
+  - Each session includes engagement: inform, inspire, assess.
+  - Session flow minutes must sum to session durationMinutes.
+  - Flow items may include an optional "movement": Inform | Inspire | Assess (recommended but optional unless your schema requires it).
 
-    const userId = userRes.user.id;
+REQUIRED ROOT KEYS (exactly these, no extra):
+- header
+- overview
+- modules
+- recommendedResources
 
-    // 2) Validate intake
-    const body: unknown = await req.json();
-    const intakeRes = IntakeSchema.safeParse(body);
-    if (!intakeRes.success) {
-      return err(400, {
-        error: "Invalid intake.",
-        stage: "intake-validate",
-        details: intakeRes.error.flatten(),
-      });
-    }
-    const intake: Intake = intakeRes.data;
-
-    // Derive consistent fields for prompt + storage
-const role = intake.role ?? deriveRoleFromTask(intake.task);
-const designType = intake.designType ?? deriveDesignTypeFromTask(intake.task);
-const timeHorizon =
-  intake.timeHorizon ??
-  (requiresTimeHorizon(intake.task) ? undefined : defaultTimeHorizon(intake.task));
-
-const intakeNormalized = {
-  ...intake,
-  role,
-  designType,
-  timeHorizon,
-};
-
-    // 3) Prompt
-    const prompt = buildBlueprintPrompt(intakeNormalized);
-
-    // 4) OpenAI
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) return err(500, { error: "OPENAI_API_KEY missing.", stage: "config" });
-    const client = new OpenAI({ apiKey });
-
-    // 5) Generate
-    const completion = await callModel(client, prompt);
-    const raw = completion.choices?.[0]?.message?.content ?? "";
-    if (!raw.trim()) return err(502, { error: "Model returned empty output.", stage: "openai" });
-
-    // 6) Parse JSON
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      return err(502, {
-        error: "Model returned invalid JSON.",
-        stage: "json-parse",
-        raw: raw.slice(0, 4000),
-      });
-    }
-
-    // 7) Unwrap + Validate schema
-    const candidate = unwrapBlueprintCandidate(parsed);
-    const schemaRes = BlueprintSchema.safeParse(candidate);
-
-    // 8) If schema fails, attempt one repair pass
-    let blueprint: Blueprint;
-    
-
-    if (!schemaRes.success) {
-      const flat = schemaRes.error.flatten();
-      const candidateKeys = safeKeys(candidate);
-
-      console.error(`[generate-blueprint] schema failed requestId=${requestId}`, flat);
-      console.error(`[generate-blueprint] candidate keys requestId=${requestId}`, candidateKeys);
-      console.error(`[generate-blueprint] raw (first 4000) requestId=${requestId}\n`, raw.slice(0, 4000));
-
-      const repairPrompt = `
-Fix the JSON to match the required schema EXACTLY. Return ONLY the corrected JSON object.
-
-Here is the REQUIRED SHAPE (keys must match exactly):
+REQUIRED SHAPE (keys must match exactly):
 
 {
   "header": {
@@ -173,7 +120,19 @@ Here is the REQUIRED SHAPE (keys must match exactly):
   },
   "overview": {
     "executiveSummary": "string",
-    "outcomes": { "formationGoal": "string", "measurableIndicators": ["string"] },
+    "outcomes": {
+      "formationGoal": "string",
+      "measurableIndicators": ["string", "..."]
+    },
+
+    // REQUIRED for Discipleship by Design:
+    "headHeartHandsObjectives": {
+      "head": "string",
+      "heart": "string",
+      "hands": "string"
+    },
+
+    // Optional (include if you can, but do not break schema):
     "bloomsObjectives": [
       { "level": "Remember|Understand|Apply|Analyze|Evaluate|Create", "objective": "string", "evidence": "string" }
     ]
@@ -184,14 +143,37 @@ Here is the REQUIRED SHAPE (keys must match exactly):
       "lessonPlan": {
         "planType": "Single Session|Multi-Session|Quarter/Semester",
         "sessions": [
-          { "title": "string", "durationMinutes": number, "flow": [{ "segment": "string", "minutes": number, "purpose": "string" }] }
+          {
+            "title": "string",
+            "durationMinutes": number,
+
+            "objectives": { "head": "string", "heart": "string", "hands": "string" },
+
+            "engagement": {
+              "inform": ["string", "..."],
+              "inspire": ["string", "..."],
+              "assess": ["string", "..."]
+            },
+
+            "flow": [
+              {
+                "segment": "string",
+                "minutes": number,
+                "purpose": "string",
+                "movement": "Inform|Inspire|Assess (optional)"
+              }
+            ]
+          }
         ]
       },
-      "facilitationPrompts": {
-        "openingQuestions": ["string"],
-        "discussionQuestions": ["string"],
-        "applicationPrompts": ["string"]
+
+      // Optional top-level engagement prompts (include if your schema expects it)
+      "engagementPrompts": {
+        "inform": ["string", "..."],
+        "inspire": ["string", "..."],
+        "assess": ["string", "..."]
       },
+
       "followUpPlan": { "sameWeekPractice": ["string"], "nextTouchpoint": ["string"] }
     }
   },
@@ -200,17 +182,125 @@ Here is the REQUIRED SHAPE (keys must match exactly):
   ]
 }
 
+HARD RULES:
+- Output ONLY a single JSON object. No wrapper keys like { "blueprint": ... }.
+- modules.teacher MUST be an OBJECT (not an array).
+- sessions MUST be an array of objects.
+- minutes in flow MUST be numbers and should sum to durationMinutes.
+- If "bloomsObjectives" is present, it must be an array (not an object) and each item must include level/objective/evidence.
+- Ensure "recommendedResources" is an ARRAY.
+
 Validation errors you must fix:
-${JSON.stringify(flat, null, 2)}
+${JSON.stringify(flatErrors, null, 2)}
 
 Bad JSON you produced:
-${raw}
-
-Rules:
-- Output ONLY a single JSON object.
-- Do NOT wrap in { "blueprint": ... } or add extra keys.
-- Do NOT change the required key names.
+${badJsonRaw}
 `.trim();
+}
+
+export async function POST(req: Request) {
+  const requestId = crypto.randomUUID();
+
+  try {
+    // 1) Auth check (user context)
+    const supabase = await supabaseRoute();
+    const { data: userRes, error: userErr } = await supabase.auth.getUser();
+
+    if (userErr) {
+      console.error(
+        `[generate-blueprint] auth error requestId=${requestId}`,
+        userErr,
+      );
+      return err(401, { error: "Unauthorized", stage: "auth" });
+    }
+    if (!userRes.user) return err(401, { error: "Unauthorized", stage: "auth" });
+
+    const userId = userRes.user.id;
+
+    // 2) Validate intake
+    const body: unknown = await req.json();
+    const intakeRes = IntakeSchema.safeParse(body);
+    if (!intakeRes.success) {
+      return err(400, {
+        error: "Invalid intake.",
+        stage: "intake-validate",
+        details: intakeRes.error.flatten(),
+      });
+    }
+    const intake: Intake = intakeRes.data;
+
+    // 2b) Derive consistent fields for prompt + storage
+    const role = intake.role ?? deriveRoleFromTask(intake.task);
+    const designType = intake.designType ?? deriveDesignTypeFromTask(intake.task);
+
+    // ✅ FIXED: time horizon only when the task REQUIRES it
+    const timeHorizon =
+      intake.timeHorizon ??
+      (requiresTimeHorizon(intake.task) ? defaultTimeHorizon(intake.task) : undefined);
+
+    const intakeNormalized: Intake = {
+      ...intake,
+      role,
+      designType,
+      timeHorizon,
+    };
+
+    // 3) Prompt
+    const prompt = buildBlueprintPrompt(intakeNormalized);
+
+    // 4) OpenAI
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey)
+      return err(500, { error: "OPENAI_API_KEY missing.", stage: "config" });
+
+    const client = new OpenAI({ apiKey });
+
+    // 5) Generate
+    const completion = await callModel(client, prompt);
+    const raw = completion.choices?.[0]?.message?.content ?? "";
+    if (!raw.trim())
+      return err(502, { error: "Model returned empty output.", stage: "openai" });
+
+    // 6) Parse JSON
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return err(502, {
+        error: "Model returned invalid JSON.",
+        stage: "json-parse",
+        raw: raw.slice(0, 4000),
+      });
+    }
+
+    // 7) Unwrap + Validate schema
+    const candidate = unwrapBlueprintCandidate(parsed);
+    const schemaRes = BlueprintSchema.safeParse(candidate);
+
+    // 8) If schema fails, attempt one repair pass
+    let blueprint: Blueprint;
+
+    if (!schemaRes.success) {
+      const flat = schemaRes.error.flatten();
+      const candidateKeys = safeKeys(candidate);
+
+      console.error(
+        `[generate-blueprint] schema failed requestId=${requestId}`,
+        flat,
+      );
+      console.error(
+        `[generate-blueprint] candidate keys requestId=${requestId}`,
+        candidateKeys,
+      );
+      console.error(
+        `[generate-blueprint] raw (first 4000) requestId=${requestId}\n`,
+        raw.slice(0, 4000),
+      );
+
+      const repairPrompt = buildRepairPrompt({
+        flatErrors: flat,
+        badJsonRaw: raw,
+      });
 
       const repair = await callModel(client, repairPrompt);
       const raw2 = repair.choices?.[0]?.message?.content ?? "";
@@ -241,8 +331,14 @@ Rules:
 
       if (!schemaRes2.success) {
         const flat2 = schemaRes2.error.flatten();
-        console.error(`[generate-blueprint] schema failed after repair requestId=${requestId}`, flat2);
-        console.error(`[generate-blueprint] raw repair (first 4000) requestId=${requestId}\n`, raw2.slice(0, 4000));
+        console.error(
+          `[generate-blueprint] schema failed after repair requestId=${requestId}`,
+          flat2,
+        );
+        console.error(
+          `[generate-blueprint] raw repair (first 4000) requestId=${requestId}\n`,
+          raw2.slice(0, 4000),
+        );
 
         return err(502, {
           error: "Blueprint schema validation failed (after repair).",
@@ -259,28 +355,31 @@ Rules:
     }
 
     // 9) Insert using authed supabase client (RLS-safe)
-const { data, error } = await supabase
-  .from("blueprints")
-  .insert({
-    user_id: userId,
-    intake: intakeNormalized,
-    blueprint,
-    title: blueprint.header.title,
-    role: blueprint.header.role,
-    group_name: blueprint.header.preparedFor.groupName,
-  })
-  .select("id")
-  .single();
+    const { data, error } = await supabase
+      .from("blueprints")
+      .insert({
+        user_id: userId,
+        intake: intakeNormalized,
+        blueprint,
+        title: blueprint.header.title,
+        role: blueprint.header.role,
+        group_name: blueprint.header.preparedFor.groupName,
+      })
+      .select("id")
+      .single();
 
-if (error) {
-  console.error(`[generate-blueprint] insert failed requestId=${requestId}`, error);
-  return err(500, {
-    error: error.message,
-    stage: "insert",
-  });
-}
+    if (error) {
+      console.error(
+        `[generate-blueprint] insert failed requestId=${requestId}`,
+        error,
+      );
+      return err(500, {
+        error: error.message,
+        stage: "insert",
+      });
+    }
 
-return NextResponse.json({ id: data.id });
+    return NextResponse.json({ id: data.id });
   } catch (e: unknown) {
     console.error(`[generate-blueprint] unhandled requestId=${requestId}`, e);
     const message = e instanceof Error ? e.message : "Unexpected error";

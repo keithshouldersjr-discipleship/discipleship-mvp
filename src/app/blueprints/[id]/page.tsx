@@ -51,33 +51,104 @@ function ListCard({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-type FlowItem = { segment: string; minutes: number; purpose: string };
+type Movement = "Inform" | "Inspire" | "Assess";
+
+type FlowItem = {
+  segment: string;
+  minutes: number;
+  purpose: string;
+  movement?: Movement;
+};
+
+function MovementPill({ movement }: { movement?: Movement }) {
+  if (!movement) return null;
+
+  const label =
+    movement === "Inform"
+      ? "Inform"
+      : movement === "Inspire"
+        ? "Inspire"
+        : "Assess";
+
+  return (
+    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] text-white/65">
+      {label}
+    </span>
+  );
+}
 
 function SessionCard({
   title,
   durationMinutes,
   flow,
+  objectives,
+  engagement,
 }: {
   title: string;
   durationMinutes: number;
   flow: FlowItem[];
+  objectives?: { head: string; heart: string; hands: string };
+  engagement?: { inform: string[]; inspire: string[]; assess: string[] };
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/30 p-5">
+    <div className="rounded-2xl border border-white/10 bg-black/30 p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm font-semibold text-[#C6A75E]">{title}</div>
         <div className="text-xs text-white/50">{durationMinutes} min</div>
       </div>
 
-      <div className="mt-4 space-y-3">
+      {/* Objectives (Head/Heart/Hands) */}
+      {objectives ? (
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="text-xs uppercase tracking-wider text-white/50">
+              Head
+            </div>
+            <div className="mt-1 text-sm text-white/80 leading-relaxed">
+              {objectives.head}
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="text-xs uppercase tracking-wider text-white/50">
+              Heart
+            </div>
+            <div className="mt-1 text-sm text-white/80 leading-relaxed">
+              {objectives.heart}
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="text-xs uppercase tracking-wider text-white/50">
+              Hands
+            </div>
+            <div className="mt-1 text-sm text-white/80 leading-relaxed">
+              {objectives.hands}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Engagement (Inform/Inspire/Assess) */}
+      {engagement ? (
+        <div className="grid gap-3 md:grid-cols-3">
+          <ListCard title="Inform" items={engagement.inform} />
+          <ListCard title="Inspire" items={engagement.inspire} />
+          <ListCard title="Assess" items={engagement.assess} />
+        </div>
+      ) : null}
+
+      {/* Flow */}
+      <div className="space-y-3">
         {flow.map((s, idx) => (
           <div
             key={idx}
             className="rounded-xl border border-white/10 bg-white/[0.03] p-4"
           >
             <div className="flex items-center justify-between gap-3">
-              <div className="text-sm font-semibold text-white">
-                {s.segment}
+              <div className="flex items-center gap-2">
+                <div className="text-sm font-semibold text-white">
+                  {s.segment}
+                </div>
+                <MovementPill movement={s.movement} />
               </div>
               <div className="text-xs text-white/50">{s.minutes} min</div>
             </div>
@@ -136,19 +207,22 @@ function NotFoundView() {
 }
 
 /* -----------------------------
-   Module type guards (fix Vercel TS errors)
+   Module type guards (keep TS happy)
 ------------------------------ */
+
+type TeacherSession = {
+  title: string;
+  durationMinutes: number;
+  objectives: { head: string; heart: string; hands: string };
+  engagement: { inform: string[]; inspire: string[]; assess: string[] };
+  flow: FlowItem[];
+};
 
 type TeacherModule = {
   prepChecklist: { beforeTheWeek: string[]; dayOf: string[] };
   lessonPlan: {
     planType: "Single Session" | "Multi-Session" | "Quarter/Semester";
-    sessions: { title: string; durationMinutes: number; flow: FlowItem[] }[];
-  };
-  facilitationPrompts: {
-    openingQuestions: string[];
-    discussionQuestions: string[];
-    applicationPrompts: string[];
+    sessions: TeacherSession[];
   };
   followUpPlan: { sameWeekPractice: string[]; nextTouchpoint: string[] };
 };
@@ -202,15 +276,31 @@ type YouthLeaderModule = {
 function isTeacherModule(v: unknown): v is TeacherModule {
   if (typeof v !== "object" || v === null) return false;
   const o = v as Record<string, unknown>;
+
+  if (
+    typeof o.prepChecklist !== "object" ||
+    o.prepChecklist === null ||
+    typeof o.lessonPlan !== "object" ||
+    o.lessonPlan === null ||
+    typeof o.followUpPlan !== "object" ||
+    o.followUpPlan === null
+  ) {
+    return false;
+  }
+
+  const lp = o.lessonPlan as Record<string, unknown>;
+  if (!Array.isArray(lp.sessions)) return false;
+
+  // Sanity check: new schema sessions include objectives + engagement
+  const first = lp.sessions[0] as unknown;
+  if (typeof first !== "object" || first === null) return false;
+  const s = first as Record<string, unknown>;
   return (
-    typeof o.prepChecklist === "object" &&
-    o.prepChecklist !== null &&
-    typeof o.lessonPlan === "object" &&
-    o.lessonPlan !== null &&
-    typeof o.facilitationPrompts === "object" &&
-    o.facilitationPrompts !== null &&
-    typeof o.followUpPlan === "object" &&
-    o.followUpPlan !== null
+    typeof s.objectives === "object" &&
+    s.objectives !== null &&
+    typeof s.engagement === "object" &&
+    s.engagement !== null &&
+    Array.isArray(s.flow)
   );
 }
 
@@ -253,7 +343,7 @@ function TeacherModuleView({ bp }: { bp: Blueprint }) {
     <section className="space-y-4">
       <SectionTitle
         title="Teacher Module"
-        subtitle="Prep, facilitation, and follow-up to help you teach with intention."
+        subtitle="A volunteer-friendly plan: objectives + engagement + flow for each session."
       />
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -279,27 +369,13 @@ function TeacherModuleView({ bp }: { bp: Blueprint }) {
               key={i}
               title={s.title}
               durationMinutes={s.durationMinutes}
+              objectives={s.objectives}
+              engagement={s.engagement}
               flow={s.flow}
             />
           ))}
         </div>
       </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <ListCard
-          title="Opening questions"
-          items={m.facilitationPrompts.openingQuestions}
-        />
-        <ListCard
-          title="Discussion questions"
-          items={m.facilitationPrompts.discussionQuestions}
-        />
-      </div>
-
-      <ListCard
-        title="Application prompts"
-        items={m.facilitationPrompts.applicationPrompts}
-      />
 
       <div className="grid gap-4 md:grid-cols-2">
         <ListCard
@@ -526,20 +602,17 @@ function YouthLeaderModuleView({ bp }: { bp: Blueprint }) {
 export default async function BlueprintPage({
   params,
 }: {
-  params: { id?: string };
+  params: Promise<{ id?: string }>;
 }) {
   const { id } = await params;
 
-  // ✅ Guard against bad routes like /blueprints/undefined
   if (!id || id === "undefined") return <NotFoundView />;
 
-  // ✅ Guard against non-UUIDs (prevents Supabase/Postgres 22P02)
   const UUID_RE =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   if (!UUID_RE.test(id)) return <NotFoundView />;
 
-  // fetch validated blueprint; repo returns Blueprint | null
   const blueprint = await fetchBlueprintById(id);
   if (!blueprint) return <NotFoundView />;
 
@@ -553,6 +626,8 @@ export default async function BlueprintPage({
   const topic = blueprint.header.context.topicOrText?.trim()
     ? blueprint.header.context.topicOrText
     : null;
+
+  const hhh = blueprint.overview.headHeartHandsObjectives;
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -594,7 +669,6 @@ export default async function BlueprintPage({
                 New blueprint
               </a>
 
-              {/* Must match your route file: /api/blueprints/[id]/pdf */}
               <a
                 href={`/api/blueprint/${id}/pdf`}
                 className="rounded-full bg-[#C6A75E] px-4 py-2 text-sm font-semibold text-black hover:opacity-90 transition"
@@ -659,40 +733,44 @@ export default async function BlueprintPage({
           </div>
         </section>
 
-        {/* Bloom objectives */}
-        <section className="mt-10 space-y-4">
-          <SectionTitle
-            title="Bloom’s Objectives"
-            subtitle="A progression of learning outcomes (head → heart → hands)."
-          />
+        {/* Objectives (DBD) */}
+        {hhh ? (
+          <section className="mt-10 space-y-4">
+            <SectionTitle
+              title="Objectives (Head · Heart · Hands)"
+              subtitle="Simple learning targets for the whole blueprint."
+            />
 
-          <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-            {blueprint.overview.bloomsObjectives.map((o, i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-white/10 bg-black/30 p-4"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="text-sm font-semibold text-[#C6A75E]">
-                    {o.level}
-                  </div>
-                  <div className="text-xs text-white/50">Objective {i + 1}</div>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                <div className="text-sm font-semibold text-white mb-2">
+                  Head
                 </div>
-
-                <div className="mt-2 text-sm text-white/85 leading-relaxed">
-                  {o.objective}
-                </div>
-
-                <div className="mt-3 text-xs uppercase tracking-wider text-white/50">
-                  Evidence of learning
-                </div>
-                <div className="mt-1 text-sm text-white/70 leading-relaxed">
-                  {o.evidence}
-                </div>
+                <p className="text-sm text-white/70 leading-relaxed">
+                  {hhh.head}
+                </p>
               </div>
-            ))}
-          </div>
-        </section>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                <div className="text-sm font-semibold text-white mb-2">
+                  Heart
+                </div>
+                <p className="text-sm text-white/70 leading-relaxed">
+                  {hhh.heart}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                <div className="text-sm font-semibold text-white mb-2">
+                  Hands
+                </div>
+                <p className="text-sm text-white/70 leading-relaxed">
+                  {hhh.hands}
+                </p>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {/* Modules */}
         <div className="mt-10 space-y-10">
