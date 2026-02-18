@@ -127,7 +127,7 @@ function SessionCard({
       </div>
 
       {engagement ? (
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 grid-cols-1">
           <ListCard title="Inform" items={engagement.inform} />
           <ListCard title="Inspire" items={engagement.inspire} />
           <ListCard title="Involve" items={engagement.involve} />
