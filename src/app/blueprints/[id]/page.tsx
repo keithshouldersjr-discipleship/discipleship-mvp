@@ -2,6 +2,7 @@
 import Image from "next/image";
 import type { Blueprint } from "@/lib/schema";
 import { fetchBlueprintById } from "@/lib/blueprint-repo";
+import { BlueprintActions } from "@/components/BlueprintActions";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -639,12 +640,7 @@ export default async function BlueprintPage({
                 New blueprint
               </a>
 
-              <a
-                href={`/api/blueprint/${id}/pdf`}
-                className="rounded-full bg-[#C6A75E] px-4 py-2 text-sm font-semibold text-black hover:opacity-90 transition"
-              >
-                Download PDF
-              </a>
+              <BlueprintActions blueprintId={id} />
             </div>
           </div>
         </div>

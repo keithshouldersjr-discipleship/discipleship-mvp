@@ -175,20 +175,17 @@ export async function POST(req: Request) {
   const requestId = crypto.randomUUID();
 
   try {
-    // 1) Auth check (user context)
-    const supabase = await supabaseRoute();
-    const { data: userRes, error: userErr } = await supabase.auth.getUser();
+   // 1) Create supabase client (auth optional)
+const supabase = await supabaseRoute();
 
-    if (userErr) {
-      console.error(
-        `[generate-blueprint] auth error requestId=${requestId}`,
-        userErr,
-      );
-      return err(401, { error: "Unauthorized", stage: "auth" });
-    }
-    if (!userRes.user) return err(401, { error: "Unauthorized", stage: "auth" });
-
-    const userId = userRes.user.id;
+// Try to read the user, but DO NOT require it.
+let userId: string | null = null;
+try {
+  const { data } = await supabase.auth.getUser();
+  userId = data.user?.id ?? null;
+} catch {
+  userId = null;
+}
 
     // 2) Validate intake
     const body: unknown = await req.json();

@@ -1,16 +1,17 @@
+// src/app/auth/callback/route.ts
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
 export const runtime = "nodejs";
 
-export async function GET(req: Request) {
-  const url = new URL(req.url);
+export async function GET(request: Request) {
+  const url = new URL(request.url);
   const code = url.searchParams.get("code");
 
-  if (!code) return NextResponse.redirect(new URL("/welcome", url));
+  if (!code) return NextResponse.redirect(new URL("/signin", url));
 
-  const cookieStore = await cookies();
+  const cookieStore = await cookies(); // ✅ no await
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,11 +27,11 @@ export async function GET(req: Request) {
           });
         },
       },
-    }
+    },
   );
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) return NextResponse.redirect(new URL("/welcome", url));
+  if (error) return NextResponse.redirect(new URL("/signin", url));
 
-  return NextResponse.redirect(new URL("/", url));
+  return NextResponse.redirect(new URL("/intake", url));
 }

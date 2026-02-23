@@ -2,6 +2,9 @@ import { fetchBlueprintById } from "@/lib/blueprint-repo";
 import { pdf } from "@react-pdf/renderer";
 import { buildBlueprintPdfDocument } from "@/lib/pdf/blueprint-pdf";
 import type { Blueprint } from "@/lib/schema";
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +44,34 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+
+    // ✅ AUTH GATE: require sign-in for PDF downloads only
+  const cookieStore = await cookies();
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cookiesToSet) => {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Next.js cookies API (object form)
+            cookieStore.set({ name, value, ...options });
+          });
+        },
+      },
+    }
+  );
+
+  const { data } = await supabase.auth.getUser();
+
+ /*  if (!data.user) {
+    // send user to sign-in, then back to this PDF route
+    const url = new URL("/sign-in", _req.url);
+    url.searchParams.set("next", `/api/blueprint/${id}/pdf`);
+    return NextResponse.redirect(url);
+  } */
 
   // Guard bad routes like /pdf/undefined
   if (!id || id === "undefined") {

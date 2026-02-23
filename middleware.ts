@@ -1,40 +1,43 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+// src/middleware.ts
+import { NextResponse, type NextRequest } from "next/server";
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Public routes
-  const publicPaths = ["/welcome", "/api", "/_next", "/favicon.ico"];
-  if (publicPaths.some((p) => pathname.startsWith(p))) return NextResponse.next();
+  const publicPaths = [
+    "/welcome",
+    "/auth/callback",
+    "/sign-in",
+    "/about",
+    "/api",
+    "/_next",
+    "/favicon.ico",
+  ];
 
-  // Only protect app pages (adjust as needed)
-  const protectedPaths = ["/", "/intake", "/blueprints"];
+  if (publicPaths.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+    return NextResponse.next();
+  }
+
+  // ✅ Only protect pages that truly require auth
+  // (Leave this empty for now if you want the whole app usable without sign-in)
+  const protectedPaths: string[] = [
+    // Example later: "/account", "/admin"
+  ];
+
   const isProtected = protectedPaths.some(
-    (p) => pathname === p || pathname.startsWith(p + "/")
+    (p) => pathname === p || pathname.startsWith(p + "/"),
   );
 
   if (!isProtected) return NextResponse.next();
 
-  // Supabase stores auth in cookies; we just check if any auth cookie exists.
-  // This is a lightweight MVP check (works for anonymous sign-in too).
-  const hasAuth =
-    req.cookies.get("sb-access-token") ||
-    req.cookies.get("sb-refresh-token") ||
-    // newer cookie naming (projects can differ)
-    Object.keys(req.cookies.getAll().reduce((acc, c) => ({ ...acc, [c.name]: true }), {})).some((n) =>
-      n.startsWith("sb-")
-    );
-
-  if (!hasAuth) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/welcome";
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
+  // If you later add protected paths again, you can add Supabase auth check here.
+  const url = req.nextUrl.clone();
+  url.pathname = "/sign-in";
+  url.searchParams.set("next", pathname);
+  return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: ["/", "/intake/:path*", "/blueprints/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
