@@ -633,13 +633,6 @@ export default async function BlueprintPage({
             </div>
 
             <div className="flex items-center gap-2">
-              <a
-                href="/intake"
-                className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white/80 hover:bg-white/[0.07] transition"
-              >
-                New blueprint
-              </a>
-
               <BlueprintActions blueprintId={id} />
             </div>
           </div>
