@@ -114,18 +114,28 @@ function SessionCard({
   durationMinutes,
   flow,
   engagement,
+  showHeader = true, // ✅ add this
 }: {
   title: string;
   durationMinutes: number;
   flow: FlowItem[];
   engagement?: { inform: string[]; inspire: string[]; involve: string[] };
+  showHeader?: boolean; // ✅ add this
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/30 p-5 space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm font-semibold text-[#C6A75E]">{title}</div>
-        <div className="text-xs text-white/50">{durationMinutes} min</div>
-      </div>
+    <div
+      className={`${
+        showHeader
+          ? "rounded-2xl border border-white/10 bg-black/30 p-5"
+          : "space-y-4"
+      } space-y-4`}
+    >
+      {showHeader ? ( // ✅ wrap the header
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-sm font-semibold text-[#C6A75E]">{title}</div>
+          <div className="text-xs text-white/50">{durationMinutes} min</div>
+        </div>
+      ) : null}
 
       {engagement ? (
         <div className="grid gap-3 grid-cols-1">
@@ -328,6 +338,13 @@ function TeacherModuleView({ bp }: { bp: Blueprint }) {
   if (!isTeacherModule(raw)) return null;
   const m = raw;
 
+  // Use your existing intake “topic/text” as the generated lesson topic
+  const lessonTopic =
+    bp.header?.context?.topicOrText?.trim() || "Generated Lesson";
+
+  // Display duration from the overall blueprint (consistent everywhere)
+  const classDuration = bp.header?.context?.durationMinutes;
+
   return (
     <section className="space-y-4">
       <SectionTitle
@@ -339,18 +356,30 @@ function TeacherModuleView({ bp }: { bp: Blueprint }) {
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <div className="text-sm font-semibold text-white">Lesson plan</div>
-          <Pill>{m.lessonPlan.planType}</Pill>
+          <div className="text-sm font-semibold text-white">
+            Lesson Plan:{" "}
+            <span className="text-[#C6A75E] font-semibold tracking-tight">
+              {lessonTopic}
+            </span>
+          </div>
+
+          {typeof classDuration === "number" ? (
+            <Pill>{classDuration} min</Pill>
+          ) : (
+            <Pill>Lesson</Pill>
+          )}
         </div>
 
         <div className="space-y-4">
           {m.lessonPlan.sessions.map((s, i) => (
             <SessionCard
               key={i}
+              // ✅ remove the “double title” feel by not repeating topic here
               title={s.title}
               durationMinutes={s.durationMinutes}
               engagement={s.engagement}
               flow={s.flow}
+              showHeader={false}
             />
           ))}
         </div>
