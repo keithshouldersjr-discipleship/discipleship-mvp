@@ -273,7 +273,7 @@ export default function IntakePage() {
             <div className="text-xl font-semibold tracking-tight text-[#e1b369]">
               Discipleship by Design
             </div>
-            <div className="text-sm text-white/60">Teach With Intention.</div>
+            <div className="text-sm text-white/60">Teach With Intent.</div>
           </div>
         </div>
 

@@ -547,7 +547,7 @@ export function buildBlueprintPdfDocument(
         <Text style={styles.coverMeta}>Group: {group}</Text>
 
         <Text style={styles.coverFooter}>
-          Teach With Intention · Generated {new Date().toLocaleDateString()}
+          Teach With Intent · Generated {new Date().toLocaleDateString()}
         </Text>
       </Page>
 
@@ -563,7 +563,7 @@ export function buildBlueprintPdfDocument(
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text>Teach With Intention</Text>
+          <Text>Teach With Intent</Text>
           <Text
             render={({ pageNumber, totalPages }) =>
               `Page ${pageNumber} of ${totalPages}`
@@ -624,7 +624,7 @@ export function buildBlueprintPdfDocument(
 
           {/* Footer */}
           <View style={styles.footer} fixed>
-            <Text>Teach With Intention</Text>
+            <Text>Teach With Intent</Text>
             <Text
               render={({ pageNumber, totalPages }) =>
                 `Page ${pageNumber} of ${totalPages}`
@@ -748,7 +748,7 @@ export function buildBlueprintPdfDocument(
 
           {/* Footer */}
           <View style={styles.footer} fixed>
-            <Text>Teach With Intention</Text>
+            <Text>Teach With Intent</Text>
             <Text
               render={({ pageNumber, totalPages }) =>
                 `Page ${pageNumber} of ${totalPages}`
