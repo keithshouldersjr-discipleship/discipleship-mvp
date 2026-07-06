@@ -75,14 +75,14 @@ export function EmailGateModal({
   return (
     <div className="fixed inset-0 z-50">
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-[rgba(22,48,42,0.58)] backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative mx-auto mt-24 w-full max-w-md rounded-3xl border border-white/10 bg-black/90 p-6 text-white shadow-2xl">
-        <div className="text-lg font-semibold text-[#C6A75E]">
+      <div className="dbd-card relative mx-auto mt-24 w-full max-w-md p-6">
+        <div className="text-lg font-extrabold text-[var(--ink)]">
           Quick email check
         </div>
-        <p className="mt-2 text-sm text-white/70">
+        <p className="mt-2 text-sm text-[var(--muted)]">
           Enter your email to {reason}. We’ll send a magic link (no password).
         </p>
 
@@ -90,7 +90,7 @@ export function EmailGateModal({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="mt-4 w-full rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none"
+          className="dbd-input mt-4"
         />
 
         {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
@@ -100,7 +100,7 @@ export function EmailGateModal({
             type="button"
             onClick={sendMagicLink}
             disabled={status === "sending" || !email.includes("@")}
-            className="flex-1 rounded-full bg-[#C6A75E] px-4 py-2 text-sm font-semibold text-black disabled:opacity-60"
+            className="dbd-btn dbd-btn-primary flex-1 disabled:opacity-60"
           >
             {status === "sending" ? "Sending…" : "Send magic link"}
           </button>
@@ -108,22 +108,22 @@ export function EmailGateModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white/80"
+            className="dbd-btn dbd-btn-secondary"
           >
             Not now
           </button>
         </div>
 
         {status === "sent" ? (
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="text-sm font-semibold">Check your email</div>
-            <p className="mt-1 text-sm text-white/70">
+          <div className="dbd-card-muted mt-4 p-4">
+            <div className="text-sm font-extrabold text-[var(--ink)]">Check your email</div>
+            <p className="mt-1 text-sm text-[var(--muted)]">
               Open the link, then come back here and click:
             </p>
             <button
               type="button"
               onClick={checkSignedIn}
-              className="mt-3 w-full rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white/85"
+              className="dbd-btn dbd-btn-secondary mt-3 w-full"
             >
               I clicked the link
             </button>

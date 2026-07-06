@@ -28,11 +28,10 @@ function buildPdfFileName(blueprint: Blueprint): string {
 
   return (
     [
-      "Discipleship-by-Design",
+      "Blueprint",
       group,
       role,
       title, // include title (optional but nice)
-      "Blueprint",
     ]
       .filter(Boolean)
       .join("_") + ".pdf"

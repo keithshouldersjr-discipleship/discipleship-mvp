@@ -52,7 +52,7 @@ export function BlueprintActions({ blueprintId }: { blueprintId: string }) {
     const a = document.createElement("a");
     a.href = url;
     // Let server filename win if possible; if not, browser uses this.
-    a.download = "Discipleship-by-Design-Blueprint.pdf";
+    a.download = "Blueprint-Lesson-Plan.pdf";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -64,7 +64,7 @@ export function BlueprintActions({ blueprintId }: { blueprintId: string }) {
     <div className="flex items-center gap-2">
       <a
         href="/intake"
-        className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white/80 hover:bg-white/[0.07] transition"
+        className="dbd-btn dbd-btn-secondary min-h-0 py-2"
       >
         New blueprint
       </a>
@@ -72,7 +72,7 @@ export function BlueprintActions({ blueprintId }: { blueprintId: string }) {
       <button
         type="button"
         onClick={handleDownloadPdf}
-        className="rounded-full bg-[#C6A75E] px-4 py-2 text-sm font-semibold text-black hover:opacity-90 transition"
+        className="dbd-btn dbd-btn-gold min-h-0 py-2"
       >
         Download PDF
       </button>

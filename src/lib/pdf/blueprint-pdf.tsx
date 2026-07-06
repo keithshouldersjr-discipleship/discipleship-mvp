@@ -16,11 +16,11 @@ import type { Blueprint } from "@/lib/schema";
    Brand Colors
 ----------------------------------- */
 
-const GOLD = "#C6A75E";
-const DARK = "#0B0B0C";
-const BORDER = "#E5E7EB";
-const TEXT_DARK = "#111827";
-const MUTED_DARK = "#6B7280";
+const GOLD = "#C9A66B";
+const DARK = "#16302A";
+const BORDER = "#D8DED8";
+const TEXT_DARK = "#16302A";
+const MUTED_DARK = "#5B6B63";
 
 /* ----------------------------------
    Styles
@@ -529,7 +529,7 @@ export function buildBlueprintPdfDocument(
   return (
     <Document>
       {/* ===========================
-          COVER PAGE (dark)
+          COVER PAGE
       ============================ */}
       <Page size="LETTER" style={styles.coverPage}>
         <View style={styles.coverLogoWrap}>
@@ -539,7 +539,7 @@ export function buildBlueprintPdfDocument(
 
         <Text style={styles.coverTitle}>{title}</Text>
         <Text style={styles.coverSubtitle}>
-          Discipleship by Design Blueprint
+          Blueprint · A Discipleship by Design tool
         </Text>
 
         <Text style={styles.coverMeta}>Role: {role}</Text>
@@ -547,7 +547,7 @@ export function buildBlueprintPdfDocument(
         <Text style={styles.coverMeta}>Group: {group}</Text>
 
         <Text style={styles.coverFooter}>
-          Teach With Intent · Generated {new Date().toLocaleDateString()}
+          Teach with intent · Generated {new Date().toLocaleDateString()}
         </Text>
       </Page>
 
@@ -557,13 +557,13 @@ export function buildBlueprintPdfDocument(
       <Page size="LETTER" style={styles.page}>
         {/* Header */}
         <View style={styles.header} fixed>
-          <Text>Discipleship by Design</Text>
+          <Text>Blueprint</Text>
           <Text>{group}</Text>
         </View>
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text>Teach With Intent</Text>
+          <Text>Discipleship by Design</Text>
           <Text
             render={({ pageNumber, totalPages }) =>
               `Page ${pageNumber} of ${totalPages}`
@@ -618,13 +618,13 @@ export function buildBlueprintPdfDocument(
         <Page size="LETTER" style={styles.page}>
           {/* Header */}
           <View style={styles.header} fixed>
-            <Text>Discipleship by Design</Text>
+            <Text>Blueprint</Text>
             <Text>{group}</Text>
           </View>
 
           {/* Footer */}
           <View style={styles.footer} fixed>
-            <Text>Teach With Intent</Text>
+            <Text>Discipleship by Design</Text>
             <Text
               render={({ pageNumber, totalPages }) =>
                 `Page ${pageNumber} of ${totalPages}`
@@ -742,13 +742,13 @@ export function buildBlueprintPdfDocument(
         <Page size="LETTER" style={styles.page}>
           {/* Header */}
           <View style={styles.header} fixed>
-            <Text>Discipleship by Design</Text>
+            <Text>Blueprint</Text>
             <Text>{group}</Text>
           </View>
 
           {/* Footer */}
           <View style={styles.footer} fixed>
-            <Text>Teach With Intent</Text>
+            <Text>Discipleship by Design</Text>
             <Text
               render={({ pageNumber, totalPages }) =>
                 `Page ${pageNumber} of ${totalPages}`

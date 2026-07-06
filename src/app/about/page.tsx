@@ -71,51 +71,45 @@ Each lesson must have clear objectives, and because students are beings of mind,
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-black text-white">
-      {/* background glow */}
-      <div className="pointer-events-none fixed inset-0 opacity-60">
-        <div className="absolute left-1/2 top-[-120px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[#C6A75E]/10 blur-3xl" />
-        <div className="absolute left-[10%] top-[35%] h-[360px] w-[360px] rounded-full bg-white/5 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-4xl px-6 py-10">
+    <main className="dbd-page">
+      <div className="dbd-shell relative max-w-4xl py-10">
         {/* top bar */}
         <div className="mb-10 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-black">
+            <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-[var(--line)] bg-white">
               <Image
                 src="/dd-logo.png"
-                alt="Discipleship by Design"
+                alt="Blueprint"
                 fill
                 className="object-contain p-1"
                 priority
               />
             </div>
             <div className="leading-tight">
-              <div className="text-sm text-white/60">
-                Discipleship by Design
+              <div className="text-sm font-semibold text-[var(--muted)]">
+                Blueprint
               </div>
-              <div className="font-semibold tracking-tight text-[#C6A75E]">
-                About
+              <div className="font-extrabold tracking-tight text-[var(--ink)]">
+                Methodology
               </div>
             </div>
           </div>
 
           <Link
             href="/intake"
-            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white/80 hover:bg-white/[0.07] transition"
+            className="dbd-btn dbd-btn-secondary"
           >
             Back to Intake
           </Link>
         </div>
 
         {/* content */}
-        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 md:p-8">
+        <div className="dbd-card p-6 md:p-8">
           <RichContent markdown={ABOUT_CONTENT} />
         </div>
 
-        <footer className="pt-10 pb-6 text-center text-xs text-white/40">
-          Discipleship by Design · Teach With Intention
+        <footer className="pt-10 pb-6 text-center text-xs font-semibold text-[var(--muted)]">
+          Blueprint · A Discipleship by Design tool
         </footer>
       </div>
     </main>

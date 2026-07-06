@@ -51,58 +51,58 @@ export default function SignInPage() {
 
   if (sent) {
     return (
-      <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
-        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-          <h1 className="text-xl font-semibold text-[#C6A75E]">
+      <main className="dbd-page flex min-h-screen items-center justify-center px-6">
+        <div className="dbd-card w-full max-w-md p-6">
+          <h1 className="dbd-serif text-3xl font-semibold text-[var(--ink)]">
             Check your email
           </h1>
-          <p className="mt-2 text-white/70">
+          <p className="mt-2 text-[var(--muted)]">
             We sent a sign-in link to{" "}
-            <span className="text-white">{email}</span>.
+            <span className="font-semibold text-[var(--ink)]">{email}</span>.
           </p>
-          <p className="mt-2 text-xs text-white/50">(No password required.)</p>
+          <p className="mt-2 text-xs text-[var(--muted)]">(No password required.)</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+    <main className="dbd-page flex min-h-screen items-center justify-center px-6">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-6 space-y-4"
+        className="dbd-card w-full max-w-md space-y-4 p-6"
       >
-        <h1 className="text-xl font-semibold text-[#C6A75E]">
-          Sign in to Discipleship by Design
+        <h1 className="dbd-serif text-3xl font-semibold text-[var(--ink)]">
+          Sign in to Blueprint
         </h1>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">Name</label>
+          <label className="dbd-label">Name</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">Church</label>
+          <label className="dbd-label">Church</label>
           <input
             value={church}
             onChange={(e) => setChurch(e.target.value)}
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">Email</label>
+          <label className="dbd-label">Email</label>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             required
           />
         </div>
@@ -111,7 +111,7 @@ export default function SignInPage() {
 
         <button
           type="submit"
-          className="w-full rounded-full bg-[#C6A75E] px-5 py-2 text-sm font-semibold text-black"
+          className="dbd-btn dbd-btn-primary w-full"
         >
           Email me a sign-in link
         </button>

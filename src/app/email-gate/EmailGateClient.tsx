@@ -63,48 +63,48 @@ export default function EmailGateClient() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+    <main className="dbd-page flex min-h-screen items-center justify-center px-6">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-6 space-y-4"
+        className="dbd-card w-full max-w-md space-y-4 p-6"
       >
-        <h1 className="text-xl font-semibold text-[#C6A75E]">Get your PDF</h1>
-        <p className="text-sm text-white/70">
+        <h1 className="dbd-serif text-3xl font-semibold text-[var(--ink)]">Get your PDF</h1>
+        <p className="text-sm text-[var(--muted)]">
           Enter your email and we’ll unlock PDF download and send you updates.
         </p>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">
+          <label className="dbd-label">
             Name (optional)
           </label>
           <input
             value={name}
             onChange={(ev) => setName(ev.target.value)}
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             placeholder="Keith"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">
+          <label className="dbd-label">
             Church (optional)
           </label>
           <input
             value={church}
             onChange={(ev) => setChurch(ev.target.value)}
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             placeholder="David’s Temple"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">Email</label>
+          <label className="dbd-label">Email</label>
           <input
             value={email}
             onChange={(ev) => setEmail(ev.target.value)}
             type="email"
             required
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             placeholder="you@domain.com"
           />
         </div>
@@ -114,12 +114,12 @@ export default function EmailGateClient() {
         <button
           type="submit"
           disabled={!canSubmit || submitting}
-          className="w-full rounded-full bg-[#C6A75E] px-5 py-2 text-sm font-semibold text-black disabled:opacity-60"
+          className="dbd-btn dbd-btn-primary w-full disabled:opacity-60"
         >
           {submitting ? "Saving…" : "Unlock PDF"}
         </button>
 
-        <p className="text-xs text-white/50">You can unsubscribe anytime.</p>
+        <p className="text-xs text-[var(--muted)]">You can unsubscribe anytime.</p>
       </form>
     </main>
   );

@@ -54,37 +54,37 @@ export default function WelcomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+    <main className="dbd-page flex min-h-screen items-center justify-center px-6">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.03] p-6 space-y-4"
+        className="dbd-card w-full max-w-md space-y-4 p-6"
       >
-        <h1 className="text-xl font-semibold text-[#C6A75E]">
-          Discipleship by Design
+        <h1 className="dbd-serif text-3xl font-semibold text-[var(--ink)]">
+          Welcome to Blueprint
         </h1>
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-[var(--muted)]">
           Enter your email + church once to personalize your blueprints.
         </p>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">Email</label>
+          <label className="dbd-label">Email</label>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
             required
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             placeholder="you@church.org"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">Church</label>
+          <label className="dbd-label">Church</label>
           <input
             value={church}
             onChange={(e) => setChurch(e.target.value)}
             required
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             placeholder="David’s Temple"
           />
         </div>
@@ -94,12 +94,12 @@ export default function WelcomePage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-[#C6A75E] px-5 py-2 text-sm font-semibold text-black disabled:opacity-60"
+          className="dbd-btn dbd-btn-primary w-full disabled:opacity-60"
         >
           {loading ? "Saving…" : "Continue"}
         </button>
 
-        <p className="text-xs text-white/40">
+        <p className="text-xs text-[var(--muted)]">
           This creates device-based access. Clearing cookies or switching
           devices will reset access until we add account recovery.
         </p>

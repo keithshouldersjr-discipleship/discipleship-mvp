@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
+import { AppTopBar } from "@/components/AppTopBar";
 
 import {
   ConstraintOptions,
@@ -55,11 +56,11 @@ function CardButton({
       onClick={onClick}
       disabled={disabled}
       className={[
-        "p-4 rounded-2xl border text-left transition",
+        "rounded-lg border p-4 text-left transition",
         disabled ? "opacity-50 cursor-not-allowed" : "",
         selected
-          ? "border-[#e1b369] bg-[#e1b369]/10"
-          : "border-white/15 hover:border-white/35 bg-white/[0.02]",
+          ? "border-[var(--forest)] bg-[var(--sage-soft)] shadow-sm"
+          : "border-[var(--line)] bg-white/70 hover:border-[rgba(31,77,63,0.32)] hover:bg-white",
       ].join(" ")}
     >
       {children}
@@ -72,15 +73,15 @@ function PremiumThinkingOverlay({ show }: { show: boolean }) {
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-[rgba(22,48,42,0.62)] backdrop-blur-sm" />
 
       <div className="relative h-full w-full flex items-center justify-center px-6">
-        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.05] p-6 shadow-2xl">
+        <div className="dbd-card w-full max-w-md p-6">
           <div className="flex items-center gap-4">
-            <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-black">
+            <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-[var(--line)] bg-white">
               <Image
                 src="/dd-logo.png"
-                alt="Discipleship by Design"
+                alt="Blueprint"
                 fill
                 className="object-contain p-2"
                 priority
@@ -88,41 +89,41 @@ function PremiumThinkingOverlay({ show }: { show: boolean }) {
             </div>
 
             <div className="flex-1">
-              <div className="text-sm text-white/60">
-                Discipleship by Design
+              <div className="text-sm font-semibold text-[var(--muted)]">
+                Blueprint
               </div>
-              <div className="text-lg font-semibold tracking-tight text-[#e1b369]">
+              <div className="text-lg font-extrabold tracking-tight text-[var(--forest)]">
                 Designing your blueprint…
               </div>
             </div>
 
-            <div className="h-9 w-9 rounded-full border border-white/15 flex items-center justify-center">
-              <div className="h-4 w-4 rounded-full border-2 border-white/30 border-t-[#e1b369] animate-spin" />
+            <div className="h-9 w-9 rounded-full border border-[var(--line)] flex items-center justify-center">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-[rgba(31,77,63,0.2)] border-t-[var(--forest)]" />
             </div>
           </div>
 
           <div className="mt-5 space-y-3">
-            <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
-              <div className="h-full w-1/2 bg-[#e1b369]/70 animate-pulse rounded-full" />
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--sage-soft)]">
+              <div className="h-full w-1/2 animate-pulse rounded-full bg-[var(--gold)]" />
             </div>
-            <p className="text-sm text-white/60 leading-relaxed">
+            <p className="text-sm leading-relaxed text-[var(--muted)]">
               We’re building your plan with clear outcomes, pacing, prompts, and
               practical activities. This usually takes a few seconds.
             </p>
 
-            <div className="rounded-2xl border border-white/10 bg-black/30 p-4">
-              <div className="text-xs uppercase tracking-wider text-white/40">
+            <div className="rounded-lg border border-[var(--line)] bg-[var(--sage-soft)] p-4">
+              <div className="text-xs font-extrabold uppercase tracking-wider text-[var(--muted)]">
                 What’s happening
               </div>
-              <ul className="mt-2 text-sm text-white/70 space-y-1">
-                <li>• Interpreting your goal and audience</li>
-                <li>• Structuring the session flow</li>
-                <li>• Generating Inform / Inspire / Involve prompts</li>
+              <ul className="mt-2 space-y-1 text-sm text-[var(--ink)]">
+                <li>Interpreting your goal and audience</li>
+                <li>Structuring the session flow</li>
+                <li>Generating Inform / Inspire / Involve prompts</li>
               </ul>
             </div>
           </div>
 
-          <p className="mt-4 text-xs text-white/40">
+          <p className="mt-4 text-xs text-[var(--muted)]">
             Tip: keep this tab open until the blueprint loads.
           </p>
         </div>
@@ -250,36 +251,37 @@ export default function IntakePage() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+    <main className="dbd-page">
+      <AppTopBar />
       <PremiumThinkingOverlay show={isSubmitting} />
 
-      <div className="pointer-events-none fixed inset-0 opacity-60">
-        <div className="absolute left-1/2 top-[-140px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[#e1b369]/10 blur-3xl" />
-        <div className="absolute left-[10%] top-[40%] h-[360px] w-[360px] rounded-full bg-white/5 blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-2xl">
+      <div className="dbd-shell grid min-h-[calc(100vh-73px)] items-center py-10">
+        <div className="mx-auto w-full max-w-3xl">
         <div className="mb-8 flex items-center gap-3">
-          <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-white/10 bg-black">
+          <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-[var(--line)] bg-white">
             <Image
               src="/dd-logo.png"
-              alt="Discipleship by Design"
+              alt="Blueprint"
               fill
               className="object-contain p-1"
               priority
             />
           </div>
           <div className="leading-tight">
-            <div className="text-xl font-semibold tracking-tight text-[#e1b369]">
-              Discipleship by Design
+            <div className="text-xl font-extrabold tracking-tight text-[var(--ink)]">
+              Blueprint
             </div>
-            <div className="text-sm text-white/60">Teach With Intent.</div>
+            <div className="text-sm font-semibold text-[var(--muted)]">
+              Teach with intent.
+            </div>
           </div>
         </div>
 
-        <p className="text-sm text-white/50 mb-4">Step {step} of 3</p>
+        <p className="mb-4 text-sm font-extrabold uppercase tracking-[0.12em] text-[var(--muted)]">
+          Step {step} of 3
+        </p>
 
-        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
+        <div className="dbd-card p-6 sm:p-8">
           {step === 1 ? (
             <StepOneOutcome
               formData={formData}
@@ -311,6 +313,7 @@ export default function IntakePage() {
             />
           ) : null}
         </div>
+        </div>
       </div>
     </main>
   );
@@ -334,17 +337,17 @@ function StepOneOutcome({
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold mb-2">
+        <h2 className="dbd-serif mb-2 text-3xl font-semibold text-[var(--ink)]">
           Desired formation outcome
         </h2>
-        <p className="text-white/60">
+        <p className="text-[var(--muted)]">
           What should learners understand, believe, or practice because of this?
         </p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm text-white/70 mb-2">
+          <label className="dbd-label">
             Outcome (write 1–3 sentences)
           </label>
           <textarea
@@ -353,15 +356,15 @@ function StepOneOutcome({
               setFormData((p) => ({ ...p, desiredOutcome: e.target.value }))
             }
             rows={5}
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
           />
-          <p className="mt-2 text-xs text-white/45">
+          <p className="mt-2 text-xs text-[var(--muted)]">
             Tip: Write it as observable change, not a vague desire.
           </p>
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">
+          <label className="dbd-label">
             Scripture or topic (optional)
           </label>
           <input
@@ -369,7 +372,7 @@ function StepOneOutcome({
             onChange={(e) =>
               setFormData((p) => ({ ...p, topicOrText: e.target.value }))
             }
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             placeholder="Example: Mark 2:13–17 or Prayer"
           />
         </div>
@@ -379,7 +382,7 @@ function StepOneOutcome({
         type="button"
         disabled={!canNext}
         onClick={next}
-        className="bg-[#e1b369] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition"
+        className="dbd-btn dbd-btn-primary disabled:opacity-40"
       >
         Next
       </button>
@@ -406,14 +409,14 @@ function StepTwoAudience({
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold mb-2">Who are you leading?</h2>
-        <p className="text-white/60">
+        <h2 className="dbd-serif mb-2 text-3xl font-semibold text-[var(--ink)]">Who are you leading?</h2>
+        <p className="text-[var(--muted)]">
           This shapes tone, pacing, and engagement.
         </p>
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm text-white/70">Age group</div>
+        <div className="dbd-label">Age group</div>
         <div className="grid gap-3 sm:grid-cols-2">
           {AgeGroupOptions.map((a) => (
             <CardButton
@@ -429,19 +432,19 @@ function StepTwoAudience({
 
       <div className="grid gap-4">
         <div>
-          <label className="block text-sm text-white/70 mb-2">Group name</label>
+          <label className="dbd-label">Group name</label>
           <input
             value={formData.groupName}
             onChange={(e) =>
               setFormData((p) => ({ ...p, groupName: e.target.value }))
             }
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             placeholder="e.g., Nehemiah’s Table"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-white/70 mb-2">
+          <label className="dbd-label">
             Your name (optional)
           </label>
           <input
@@ -449,7 +452,7 @@ function StepTwoAudience({
             onChange={(e) =>
               setFormData((p) => ({ ...p, leaderName: e.target.value }))
             }
-            className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+            className="dbd-input"
             placeholder="e.g., Keith"
           />
         </div>
@@ -459,7 +462,7 @@ function StepTwoAudience({
         <button
           type="button"
           onClick={back}
-          className="text-white/60 hover:text-white"
+          className="dbd-link"
         >
           Back
         </button>
@@ -467,7 +470,7 @@ function StepTwoAudience({
           type="button"
           disabled={!canNext}
           onClick={next}
-          className="bg-[#e1b369] text-black px-6 py-2 rounded-full font-semibold disabled:opacity-40 transition"
+          className="dbd-btn dbd-btn-primary disabled:opacity-40"
         >
           Next
         </button>
@@ -500,14 +503,14 @@ function StepThreeContext({
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold mb-2">Context & constraints</h2>
-        <p className="text-white/60">
+        <h2 className="dbd-serif mb-2 text-3xl font-semibold text-[var(--ink)]">Context & constraints</h2>
+        <p className="text-[var(--muted)]">
           Select up to two constraints so we can focus on the biggest hurdles.
         </p>
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm text-white/70">Setting</div>
+        <div className="dbd-label">Setting</div>
         <div className="grid gap-3 sm:grid-cols-2">
           {SettingOptions.map((s) => (
             <CardButton
@@ -522,7 +525,7 @@ function StepThreeContext({
 
         {formData.setting === "Other" ? (
           <div>
-            <label className="block text-sm text-white/70 mb-2">
+            <label className="dbd-label">
               Describe the setting
             </label>
             <input
@@ -530,14 +533,14 @@ function StepThreeContext({
               onChange={(e) =>
                 setFormData((p) => ({ ...p, settingDetail: e.target.value }))
               }
-              className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+              className="dbd-input"
             />
           </div>
         ) : null}
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm text-white/70">Typical session length</div>
+        <div className="dbd-label">Typical session length</div>
         <div className="grid gap-3 sm:grid-cols-3">
           {DurationOptions.map((d) => (
             <CardButton
@@ -552,7 +555,7 @@ function StepThreeContext({
 
         {formData.duration === "Custom" ? (
           <div>
-            <label className="block text-sm text-white/70 mb-2">
+            <label className="dbd-label">
               Custom minutes
             </label>
             <input
@@ -563,7 +566,7 @@ function StepThreeContext({
                   durationCustomMinutes: e.target.value,
                 }))
               }
-              className="w-full rounded-lg border border-white/20 bg-black/40 p-3 text-white"
+              className="dbd-input"
               inputMode="numeric"
             />
           </div>
@@ -571,7 +574,7 @@ function StepThreeContext({
       </div>
 
       <div className="space-y-3">
-        <div className="text-sm text-white/70">Constraints (pick up to 2)</div>
+        <div className="dbd-label">Constraints (pick up to 2)</div>
         <div className="grid gap-3 sm:grid-cols-2">
           {ConstraintOptions.map((c) => {
             const selected = formData.constraintsSelected.includes(c);
@@ -602,7 +605,7 @@ function StepThreeContext({
                 }}
               >
                 <div className="font-semibold">{c}</div>
-                <div className="text-xs text-white/60 mt-1">
+                <div className="mt-1 text-xs text-[var(--muted)]">
                   {selected ? "Selected" : atMax ? "Max 2 selected" : "Select"}
                 </div>
               </CardButton>
@@ -611,7 +614,7 @@ function StepThreeContext({
         </div>
 
         {formData.constraintsSelected.length ? (
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-[var(--muted)]">
             Selected: {formData.constraintsSelected.join(" · ")}
           </p>
         ) : null}
@@ -627,7 +630,7 @@ function StepThreeContext({
         <button
           type="button"
           onClick={back}
-          className="text-white/60 hover:text-white"
+          className="dbd-link"
         >
           Back
         </button>
@@ -636,7 +639,7 @@ function StepThreeContext({
           type="button"
           disabled={!canSubmit || isSubmitting}
           onClick={onSubmit}
-          className="rounded-full bg-[#e1b369] px-6 py-2 text-sm font-semibold text-black disabled:opacity-60"
+          className="dbd-btn dbd-btn-primary disabled:opacity-60"
         >
           {isSubmitting ? "Designing…" : "Generate Blueprint"}
         </button>

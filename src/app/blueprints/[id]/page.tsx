@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/70">
+    <span className="dbd-pill">
       {children}
     </span>
   );
@@ -29,22 +29,22 @@ function SectionTitle({
 }) {
   return (
     <div className="space-y-1">
-      <h2 className="text-lg font-semibold tracking-tight text-white">
+      <h2 className="dbd-serif text-2xl font-semibold tracking-normal text-[var(--ink)]">
         {title}
       </h2>
-      {subtitle ? <p className="text-sm text-white/60">{subtitle}</p> : null}
+      {subtitle ? <p className="text-sm text-[var(--muted)]">{subtitle}</p> : null}
     </div>
   );
 }
 
 function ListCard({ title, items }: { title: string; items: string[] }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-      <div className="text-sm font-semibold text-white mb-3">{title}</div>
-      <ul className="space-y-2 text-sm text-white/75">
+    <div className="dbd-card-muted p-5">
+      <div className="mb-3 text-sm font-extrabold text-[var(--ink)]">{title}</div>
+      <ul className="space-y-2 text-sm text-[var(--muted)]">
         {items.map((it, i) => (
           <li key={i} className="flex gap-2">
-            <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[#C6A75E]" />
+            <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />
             <span className="leading-relaxed">{it}</span>
           </li>
         ))}
@@ -98,7 +98,7 @@ function MovementPill({ movement }: { movement?: Movement }) {
         : "Involve";
 
   return (
-    <span className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] text-white/65">
+    <span className="inline-flex items-center rounded-full border border-[var(--line)] bg-white/70 px-2 py-0.5 text-[10px] font-bold text-[var(--forest)]">
       {label}
     </span>
   );
@@ -127,14 +127,14 @@ function SessionCard({
     <div
       className={`${
         showHeader
-          ? "rounded-2xl border border-white/10 bg-black/30 p-5"
+          ? "dbd-card-muted p-5"
           : "space-y-4"
       } space-y-4`}
     >
       {showHeader ? ( // ✅ wrap the header
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-sm font-semibold text-[#C6A75E]">{title}</div>
-          <div className="text-xs text-white/50">{durationMinutes} min</div>
+          <div className="text-sm font-extrabold text-[var(--forest)]">{title}</div>
+          <div className="text-xs font-semibold text-[var(--muted)]">{durationMinutes} min</div>
         </div>
       ) : null}
 
@@ -150,18 +150,18 @@ function SessionCard({
         {flow.map((s, idx) => (
           <div
             key={idx}
-            className="rounded-xl border border-white/10 bg-white/[0.03] p-4"
+            className="rounded-lg border border-[var(--line)] bg-white p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <div className="text-sm font-semibold text-white">
+                <div className="text-sm font-extrabold text-[var(--ink)]">
                   {s.segment}
                 </div>
                 <MovementPill movement={s.movement} />
               </div>
-              <div className="text-xs text-white/50">{s.minutes} min</div>
+              <div className="text-xs font-semibold text-[var(--muted)]">{s.minutes} min</div>
             </div>
-            <div className="mt-2 text-sm text-white/70 leading-relaxed">
+            <div className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
               {s.purpose}
             </div>
           </div>
@@ -177,35 +177,35 @@ function SessionCard({
 
 function NotFoundView() {
   return (
-    <main className="min-h-screen bg-black text-white px-6 py-16">
+    <main className="dbd-page px-6 py-16">
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-black">
+          <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-[var(--line)] bg-white">
             <Image
               src="/dd-logo.png"
-              alt="Discipleship by Design"
+              alt="Blueprint"
               fill
               className="object-contain p-1"
               priority
             />
           </div>
           <div className="leading-tight">
-            <div className="text-sm text-white/60">Discipleship by Design</div>
-            <div className="font-semibold tracking-tight text-[#C6A75E]">
+            <div className="text-sm font-semibold text-[var(--muted)]">Blueprint</div>
+            <div className="font-extrabold tracking-tight text-[var(--forest)]">
               Blueprint not found
             </div>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-          <p className="text-white/70 leading-relaxed">
+        <div className="dbd-card p-6">
+          <p className="leading-relaxed text-[var(--muted)]">
             This blueprint isn’t available. It may have been generated before a
             schema update, or the record is invalid.
           </p>
 
           <a
             href="/intake"
-            className="mt-4 inline-flex rounded-full bg-[#C6A75E] px-5 py-2 text-sm font-semibold text-black"
+            className="dbd-btn dbd-btn-primary mt-4"
           >
             Generate a new blueprint
           </a>
@@ -355,11 +355,11 @@ function TeacherModuleView({ bp }: { bp: Blueprint }) {
 
       <ListCard title="Prep Checklist" items={m.prepChecklist} />
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
+      <div className="dbd-card p-5 space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <div className="text-sm font-semibold text-white">
+          <div className="text-sm font-extrabold text-[var(--ink)]">
             Lesson Plan:{" "}
-            <span className="text-[#C6A75E] font-semibold tracking-tight">
+            <span className="font-extrabold tracking-tight text-[var(--forest)]">
               {lessonTopic}
             </span>
           </div>
@@ -401,9 +401,9 @@ function PastorLeaderModuleView({ bp }: { bp: Blueprint }) {
         subtitle="Alignment, leader training, and simple measurement to scale disciple-making."
       />
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
+      <div className="dbd-card p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm font-semibold text-white">Plan overview</div>
+          <div className="text-sm font-extrabold text-[var(--ink)]">Plan overview</div>
           <div className="flex gap-2">
             <Pill>{m.planOverview.planType}</Pill>
             <Pill>{m.planOverview.cadence}</Pill>
@@ -425,10 +425,10 @@ function PastorLeaderModuleView({ bp }: { bp: Blueprint }) {
           {m.sessions.map((s, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4"
+              className="dbd-card p-5 space-y-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-sm font-semibold text-[#C6A75E]">
+                <div className="text-sm font-extrabold text-[var(--forest)]">
                   {i + 1}. {s.title}
                 </div>
                 <Pill>Objective: {s.objective}</Pill>
@@ -453,8 +453,8 @@ function PastorLeaderModuleView({ bp }: { bp: Blueprint }) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
-          <div className="text-sm font-semibold text-white">
+        <div className="dbd-card p-5 space-y-4">
+          <div className="text-sm font-extrabold text-[var(--ink)]">
             Leader training plan
           </div>
 
@@ -462,20 +462,20 @@ function PastorLeaderModuleView({ bp }: { bp: Blueprint }) {
             {m.leaderTrainingPlan.trainingSessions.map((t, i) => (
               <div
                 key={i}
-                className="rounded-xl border border-white/10 bg-black/30 p-4"
+                className="rounded-lg border border-[var(--line)] bg-white p-4"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-sm font-semibold text-[#C6A75E]">
+                  <div className="text-sm font-extrabold text-[var(--forest)]">
                     {t.title}
                   </div>
-                  <div className="text-xs text-white/50">
+                  <div className="text-xs font-semibold text-[var(--muted)]">
                     {t.durationMinutes} min
                   </div>
                 </div>
-                <ul className="mt-3 space-y-2 text-sm text-white/70">
+                <ul className="mt-3 space-y-2 text-sm text-[var(--muted)]">
                   {t.agenda.map((a, idx) => (
                     <li key={idx} className="flex gap-2">
-                      <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[#C6A75E]" />
+                      <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />
                       <span className="leading-relaxed">{a}</span>
                     </li>
                   ))}
@@ -490,8 +490,8 @@ function PastorLeaderModuleView({ bp }: { bp: Blueprint }) {
           />
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
-          <div className="text-sm font-semibold text-white">
+        <div className="dbd-card p-5 space-y-4">
+          <div className="text-sm font-extrabold text-[var(--ink)]">
             Measurement framework
           </div>
           <ListCard
@@ -524,8 +524,8 @@ function YouthLeaderModuleView({ bp }: { bp: Blueprint }) {
         subtitle="Activities + debriefs that produce learning evidence."
       />
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
-        <div className="text-sm font-semibold text-white">
+      <div className="dbd-card p-5 space-y-4">
+        <div className="text-sm font-extrabold text-[var(--ink)]">
           Activity-integrated sessions
         </div>
         <div className="space-y-4">
@@ -540,38 +540,38 @@ function YouthLeaderModuleView({ bp }: { bp: Blueprint }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
-        <div className="text-sm font-semibold text-white">Activity bank</div>
+      <div className="dbd-card p-5 space-y-4">
+        <div className="text-sm font-extrabold text-[var(--ink)]">Activity bank</div>
         <div className="space-y-4">
           {m.activityBank.map((a, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-white/10 bg-black/30 p-5"
+              className="rounded-lg border border-[var(--line)] bg-white p-5"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-sm font-semibold text-[#C6A75E]">
+                <div className="text-sm font-extrabold text-[var(--forest)]">
                   {a.name}
                 </div>
                 <Pill>{a.timeMinutes} min</Pill>
               </div>
 
-              <div className="mt-3 text-sm text-white/70 leading-relaxed">
-                <span className="text-white/60">Objective tie: </span>
+              <div className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+                <span className="font-semibold text-[var(--ink)]">Objective tie: </span>
                 {a.objectiveTie}
               </div>
 
-              <div className="mt-3 text-sm text-white/70 leading-relaxed">
-                <span className="text-white/60">Setup: </span>
+              <div className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
+                <span className="font-semibold text-[var(--ink)]">Setup: </span>
                 {a.setup}
               </div>
 
-              <div className="mt-4 text-xs uppercase tracking-wider text-white/50">
+              <div className="mt-4 text-xs font-extrabold uppercase tracking-wider text-[var(--muted)]">
                 Debrief questions
               </div>
-              <ul className="mt-2 space-y-2 text-sm text-white/75">
+              <ul className="mt-2 space-y-2 text-sm text-[var(--muted)]">
                 {a.debriefQuestions.map((q, idx) => (
                   <li key={idx} className="flex gap-2">
-                    <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[#C6A75E]" />
+                    <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-[var(--gold)]" />
                     <span className="leading-relaxed">{q}</span>
                   </li>
                 ))}
@@ -632,32 +632,28 @@ export default async function BlueprintPage({
   const growthMeasures = readGrowthMeasures(blueprint.overview.outcomes);
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="dbd-page">
       <AppMenu />
-      <div className="pointer-events-none fixed inset-0 opacity-60">
-        <div className="absolute left-1/2 top-[-120px] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-[#C6A75E]/10 blur-3xl" />
-        <div className="absolute left-[10%] top-[35%] h-[360px] w-[360px] rounded-full bg-white/5 blur-3xl" />
-      </div>
 
-      <div className="relative mx-auto max-w-4xl px-6 py-10">
+      <div className="dbd-shell relative max-w-4xl py-10">
         {/* Top bar */}
-        <div className="sticky top-0 z-10 -mx-6 mb-8 border-b border-white/10 bg-black/70 px-6 py-4 backdrop-blur">
+        <div className="sticky top-0 z-10 -mx-6 mb-8 border-b border-[var(--line)] bg-[rgba(250,249,245,0.92)] px-6 py-4 backdrop-blur">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-black">
+              <div className="relative h-10 w-10 overflow-hidden rounded-lg border border-[var(--line)] bg-white">
                 <Image
                   src="/dd-logo.png"
-                  alt="Discipleship by Design"
+                  alt="Blueprint"
                   fill
                   className="object-contain p-1"
                   priority
                 />
               </div>
               <div className="leading-tight">
-                <div className="text-sm text-white/60">
-                  Discipleship by Design
+                <div className="text-sm font-semibold text-[var(--muted)]">
+                  Blueprint
                 </div>
-                <div className="font-semibold tracking-tight text-white">
+                <div className="font-extrabold tracking-tight text-[var(--ink)]">
                   {blueprint.header.preparedFor.groupName}
                 </div>
               </div>
@@ -684,12 +680,12 @@ export default async function BlueprintPage({
             {constraints ? <Pill>Constraints: {constraints}</Pill> : null}
           </div>
 
-          <h1 className="text-3xl font-semibold tracking-tight text-[#C6A75E]">
+          <h1 className="dbd-serif text-4xl font-semibold tracking-normal text-[var(--ink)]">
             {blueprint.header.title}
           </h1>
 
           {blueprint.header.subtitle ? (
-            <p className="text-base text-white/70">
+            <p className="text-base leading-7 text-[var(--muted)]">
               {blueprint.header.subtitle}
             </p>
           ) : null}
@@ -703,11 +699,11 @@ export default async function BlueprintPage({
           />
 
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-              <div className="text-sm font-semibold text-white mb-2">
+            <div className="dbd-card p-5">
+              <div className="mb-2 text-sm font-extrabold text-[var(--ink)]">
                 Formation Goal
               </div>
-              <p className="text-sm text-white/70 leading-relaxed">
+              <p className="text-sm leading-relaxed text-[var(--muted)]">
                 {formationGoalText}
               </p>
             </div>
@@ -738,14 +734,14 @@ export default async function BlueprintPage({
             {blueprint.recommendedResources.map((r, i) => (
               <div
                 key={i}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+                className="dbd-card p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-semibold text-[#C6A75E]">
+                    <div className="text-sm font-extrabold text-[var(--forest)]">
                       {r.title}
                     </div>
-                    <div className="text-xs text-white/60 mt-1">
+                    <div className="mt-1 text-xs text-[var(--muted)]">
                       {r.author} · {r.publisher}
                     </div>
                   </div>
@@ -755,7 +751,7 @@ export default async function BlueprintPage({
                       href={r.amazonUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/80 hover:bg-white/[0.07] transition"
+                      className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1.5 text-xs font-semibold text-[var(--forest)] transition hover:bg-[var(--sage-soft)]"
                     >
                       Amazon
                     </a>
@@ -763,14 +759,14 @@ export default async function BlueprintPage({
                       href={r.publisherUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/80 hover:bg-white/[0.07] transition"
+                      className="rounded-full border border-[var(--line)] bg-white/70 px-3 py-1.5 text-xs font-semibold text-[var(--forest)] transition hover:bg-[var(--sage-soft)]"
                     >
                       Publisher
                     </a>
                   </div>
                 </div>
 
-                <p className="mt-3 text-sm text-white/70 leading-relaxed">
+                <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">
                   {r.whyThisHelps}
                 </p>
               </div>
@@ -778,8 +774,8 @@ export default async function BlueprintPage({
           </div>
         </section>
 
-        <footer className="pt-10 pb-6 text-center text-xs text-white/40">
-          Generated by Discipleship by Design · Teach With Intent
+        <footer className="pt-10 pb-6 text-center text-xs font-semibold text-[var(--muted)]">
+          Generated by Blueprint · A Discipleship by Design tool
         </footer>
       </div>
     </main>
